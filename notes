@@ -1,0 +1,45 @@
+
+session
+
+user   // пользователь системы
+
+company
+
+
+person //
+
+
+request
+
+
+offer
+
+
+service
+
+
+
+
+Классы
+class Raster;
+class ImageSprite;
+
+Интерфейсы
+interface RasterDelegate;
+interface Storing;
+
+Переменные
+int i;
+char c;
+float myWidth;
+
+Методы
+run();
+runFast();
+getBackground();
+
+Константы
+static final int MAX_WIDTH = 999;
+static final int GET_THE_CPU = 1;
+
+Пакеты	Имя пакета пишется только строчными буквами. Префикс уникального имени пакета должен быть одним из имен верхнего доменного уровня: ru, su, com, org, net, edu, gov и т.п. как указано в стандарте ISO 3166, 1981. Последующие компоненты имени пакета варьируются в зависимости от собственной внутренней организации домена.
