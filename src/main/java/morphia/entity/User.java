@@ -11,7 +11,9 @@ import org.mongodb.morphia.annotations.Property;
 
 import com.mongodb.DBObject;
 
+import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by owl on 3/25/16.
@@ -30,9 +32,14 @@ public class User {
         this.password = null;
     }
 
-    public User(ObjectId id, String name, String password) {
-        this.id = id;
-        this.name = name;
-        this.password = password;
+    public User(Map<String, String> values) throws Exception {
+        for (Field field : Offer.class.getFields()) {
+            Object val = values.get(field.getName());
+            if (field.getType() != String.class && field.getType() != ObjectId.class && val == null) {
+                field.set(this, -1);
+            } else {
+                field.set(this, val);
+            }
+        }
     }
 }

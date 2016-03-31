@@ -14,7 +14,7 @@ public class CommonUtils {
     public static Map<String, String> JsonToMap(String json) {
         Gson gson = new Gson();
         Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
-        Map<String,String> map = gson.fromJson(json, stringStringMap);
+        Map<String, String> map = gson.fromJson(json, stringStringMap);
         return map;
     }
 }

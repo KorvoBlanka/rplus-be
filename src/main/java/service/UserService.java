@@ -59,12 +59,12 @@ public class UserService {
         return user;
     }
 
-    public User create(String body) {
+    public User create(String body) throws Exception {
         this.logger.info("create");
 
-        Map<String, String> map = CommonUtils.JsonToMap(body);
+        Map<String, String> values = CommonUtils.JsonToMap(body);
 
-        User user = new User(null, map.get("name"), map.get("password"));
+        User user = new User(values);
 
         ObjectId id = (ObjectId)ds.save(user).getId();
         User result = ds.get(User.class, id);

@@ -14,18 +14,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MorphiaTest {
     public static void test() throws Exception {
-        Logger logger = LoggerFactory.getLogger(MorphiaTest.class);
 
-        MongoClient mongoClient = new MongoClient("localhost");
-
-        Morphia morphia = new Morphia();
-        morphia.map(User.class);
-
-        Datastore ds = morphia.createDatastore(mongoClient, "rplus-dev");
-
-        User user = new User(null, "some_name", "some_password");
-        Key<User> result = ds.save(user);
-
-        logger.info(result.toString());
     }
 }
