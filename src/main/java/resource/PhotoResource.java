@@ -35,7 +35,7 @@ public class PhotoResource {
         get(AppConfig.API_CONTEXT + "/photo/list/:id", "application/json", (request, response) -> {
             List<Photo> result = photoService.list(request.params(":id"));
             for(Photo p: result) {
-                p.fileName = "http://localhost:4567/photo_storage/" + p.fileName;
+                p.fileName = AppConfig.PHOTO_STORAGE_URL + p.fileName;
             }
             return result;
         }, new JsonTransformer());

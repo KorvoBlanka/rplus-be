@@ -2,6 +2,7 @@
  * Created by owl on 3/23/16.
  */
 
+import Configuration.AppConfig;
 import com.mongodb.*;
 import morphia.entity.User;
 import morphia.entity.Offer;
@@ -33,7 +34,8 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        Spark.externalStaticFileLocation("/home/owl/projects/public");
+        AppConfig.LoadConfig();
+        Spark.externalStaticFileLocation(AppConfig.STATIC_FILE_LOCATION);
 
         Datastore ds = getDatastore();
         App.userService = new UserService(ds);
