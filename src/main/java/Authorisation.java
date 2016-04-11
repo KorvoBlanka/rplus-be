@@ -14,7 +14,7 @@ import static spark.Spark.post;
  * Created by owl on 3/26/16.
  */
 public class Authorisation {
-    static Logger logger = LoggerFactory.getLogger(App.class);
+    static Logger logger = LoggerFactory.getLogger(Authorisation.class);
     static final boolean AUTH_CHECK_DISABLE = true;
 
     public Authorisation() {

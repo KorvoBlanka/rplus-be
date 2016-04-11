@@ -1,6 +1,9 @@
 package service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mongodb.WriteResult;
+import morphia.entity.GeoLocation;
 import morphia.entity.Offer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -8,6 +11,7 @@ import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.CommonUtils;
+import utils.ObjectIdTypeAdapter;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -21,15 +25,17 @@ public class OfferService {
     Logger logger = LoggerFactory.getLogger(OfferService.class);
 
     private final Datastore ds;
+    Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new ObjectIdTypeAdapter()).create();
+
 
     public OfferService(Datastore ds) {
         this.ds = ds;
     }
 
-    public List<Offer> list(String filter) {
+    public List<Offer> list(int page, int perPage, String filter) {
         List<Offer> result = new LinkedList<Offer>();
 
-        for (Offer o : ds.find(Offer.class)) {
+        for (Offer o : ds.find(Offer.class).limit(perPage).offset(page * perPage)) {
             result.add(o);
         }
 
@@ -43,34 +49,30 @@ public class OfferService {
         return result;
     }
 
-    public Offer update(String id, String body) {
+    public Offer update(String id, String body) throws Exception {
         this.logger.info("update");
 
         this.logger.info(body);
 
-        Map<String, String> values = CommonUtils.JsonToMap(body);
-
-        this.logger.info(values.toString());
+        Offer t_offer = gson.fromJson(body, Offer.class);
 
         Offer offer = ds.get(Offer.class, new ObjectId(id));
 
         for (Field field : Offer.class.getFields()) {
+
             String f_name = field.getName();
-            String value = values.get(f_name);
-            logger.info(f_name + " - " + value);
-            if (f_name == "id") continue;;
-            if (value == null) {
-                if (field.getType() == String.class) {
-                    value = "";
-                } else
-                if (field.getType() == float.class || field.getType() == long.class || field.getType() == int.class) {
-                    value = "-1";
-                } else {
-                    value = "false";
-                }
+            Object old_value = field.get(offer);
+            Object new_value = field.get(t_offer);
+            logger.info(f_name + ": " + old_value + " -> "  + new_value);
+            if (f_name == "id") continue;
+            if (old_value == new_value) continue;
+            if (new_value == null) {
+                UpdateResults result =
+                        ds.update(offer, ds.createUpdateOperations(Offer.class).unset(f_name));
+            } else {
+                UpdateResults result =
+                        ds.update(offer, ds.createUpdateOperations(Offer.class).set(f_name, new_value));
             }
-            UpdateResults result =
-                    ds.update(offer, ds.createUpdateOperations(Offer.class).set(f_name, value));
         }
 
         offer = ds.get(Offer.class, new ObjectId(id));
@@ -80,11 +82,9 @@ public class OfferService {
     public Offer create(String body) throws Exception {
         this.logger.info("create");
 
-        Map<String, String> map = CommonUtils.JsonToMap(body);
+        Offer tOffer = gson.fromJson(body, Offer.class);
 
-        Offer offer = new Offer(map);
-
-        ObjectId id = (ObjectId)ds.save(offer).getId();
+        ObjectId id = (ObjectId)ds.save(tOffer).getId();
         Offer result = ds.get(Offer.class, id);
         return result;
     }

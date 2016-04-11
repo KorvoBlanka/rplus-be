@@ -21,11 +21,9 @@ import static spark.Spark.put;
  */
 public class OfferResource {
 
-    Logger logger = LoggerFactory.getLogger(UserService.class);
+    Logger logger = LoggerFactory.getLogger(OfferResource.class);
 
     private final OfferService offerService;
-
-    Gson gson = new Gson();
 
     public OfferResource(OfferService offerService) {
         this.offerService = offerService;
@@ -58,7 +56,21 @@ public class OfferResource {
         }, new JsonTransformer());
 
         get(AppConfig.API_CONTEXT + "/offer/list", "application/json", (request, response) -> {
-            List<Offer> result = offerService.list(request.body());
+
+            int page = 0;
+            int perPage = 32;
+
+            if (request.queryParams("page") != null) {
+                Integer.parseInt(request.queryParams("page"));
+            }
+            if (request.queryParams("per_page") != null) {
+                Integer.parseInt(request.queryParams("per_page"));
+            }
+
+            List<Offer> result = offerService.list(page, perPage, "");
+            /*for(Offer o: result) {
+                o.photo_thumbnail = "http://localhost:4567/photo_storage/" + o.photo_thumbnail;
+            }*/
             return result;
         }, new JsonTransformer());
 
