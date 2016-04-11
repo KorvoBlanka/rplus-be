@@ -30,9 +30,9 @@ public class AppConfig {
 
         AppConfig.STATIC_FILE_LOCATION = conf_map.get("STATIC_FILE_LOCATION");
 
-        AppConfig.FILE_STORAGE_PATH = conf_map.get("FILE_STORAGE_PATH");
+        AppConfig.FILE_STORAGE_PATH = AppConfig.STATIC_FILE_LOCATION + conf_map.get("FILE_STORAGE_PATH");
         AppConfig.FILE_STORAGE_URL = conf_map.get("FILE_STORAGE_URL");
-        AppConfig.PHOTO_STORAGE_PATH = conf_map.get("PHOTO_STORAGE_PATH");
+        AppConfig.PHOTO_STORAGE_PATH = AppConfig.STATIC_FILE_LOCATION + conf_map.get("PHOTO_STORAGE_PATH");
         AppConfig.PHOTO_STORAGE_URL = conf_map.get("PHOTO_STORAGE_URL");
     }
 }
