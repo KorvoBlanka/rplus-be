@@ -6,6 +6,12 @@ import com.mongodb.WriteResult;
 import morphia.entity.GeoLocation;
 import morphia.entity.Offer;
 import org.bson.types.ObjectId;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
@@ -25,18 +31,36 @@ public class OfferService {
     Logger logger = LoggerFactory.getLogger(OfferService.class);
 
     private final Datastore ds;
+    private final Client ec;
     Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new ObjectIdTypeAdapter()).create();
 
-
-    public OfferService(Datastore ds) {
+    public OfferService(Datastore ds, Client ec) {
         this.ds = ds;
+        this.ec = ec;
     }
 
-    public List<Offer> list(int page, int perPage, String filter) {
+    public List<Offer> list(int page, int perPage, String searchQuery) {
         List<Offer> result = new LinkedList<Offer>();
 
+        /*
         for (Offer o : ds.find(Offer.class).limit(perPage).offset(page * perPage)) {
             result.add(o);
+        }
+        */
+        // client.prepareSearch("index1", "index2").setTypes("type1", "type2")
+        // .setQuery(QueryBuilders.termQuery("multi", "test"))                 // Query
+        // .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18))     // Filte
+
+        SearchResponse response = ec.prepareSearch("rplus-index")
+                .setTypes("offers")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(QueryBuilders.matchPhraseQuery("source_media_text", searchQuery))
+                .setFrom(page * perPage).setSize(perPage)
+                .execute()
+                .actionGet();
+
+        for(SearchHit sh: response.getHits()) {
+            result.add(gson.fromJson(sh.getSourceAsString(), Offer.class));
         }
 
         return result;
@@ -86,6 +110,10 @@ public class OfferService {
 
         ObjectId id = (ObjectId)ds.save(tOffer).getId();
         Offer result = ds.get(Offer.class, id);
+
+        IndexResponse idx_response = ec.prepareIndex("rplus-index", "offers").setSource(gson.toJson(result)).execute().actionGet();
+        logger.info(idx_response.getId());
+
         return result;
     }
 

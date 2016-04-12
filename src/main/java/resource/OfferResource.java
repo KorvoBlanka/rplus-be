@@ -59,6 +59,7 @@ public class OfferResource {
 
             int page = 0;
             int perPage = 32;
+            String search_query = "";
 
             if (request.queryParams("page") != null) {
                 Integer.parseInt(request.queryParams("page"));
@@ -66,8 +67,12 @@ public class OfferResource {
             if (request.queryParams("per_page") != null) {
                 Integer.parseInt(request.queryParams("per_page"));
             }
+            if (request.queryParams("search_query") != null) {
+                search_query = request.queryParams("search_query");
+            }
 
-            List<Offer> result = offerService.list(page, perPage, "");
+
+            List<Offer> result = offerService.list(page, perPage, search_query);
             /*for(Offer o: result) {
                 o.photo_thumbnail = "http://localhost:4567/photo_storage/" + o.photo_thumbnail;
             }*/
