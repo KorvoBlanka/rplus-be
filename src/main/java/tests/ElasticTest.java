@@ -35,7 +35,7 @@ public class ElasticTest {
 
         client.admin().cluster().prepareHealth().setWaitForYellowStatus().execute().actionGet(5000);
 
-        IndexResponse idx_response = client.prepareIndex("rplus-index", "test")
+        IndexResponse idx_response = client.prepareIndex("rplus-dict", "city_dict")
                 .setSource(json).execute().actionGet();
 
         logger.info(idx_response.getIndex());

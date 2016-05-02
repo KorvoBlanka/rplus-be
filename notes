@@ -43,3 +43,225 @@ static final int MAX_WIDTH = 999;
 static final int GET_THE_CPU = 1;
 
 Пакеты	Имя пакета пишется только строчными буквами. Префикс уникального имени пакета должен быть одним из имен верхнего доменного уровня: ru, su, com, org, net, edu, gov и т.п. как указано в стандарте ISO 3166, 1981. Последующие компоненты имени пакета варьируются в зависимости от собственной внутренней организации домена.
+
+
+
+
+
+    public void ParseQuery(String query) {
+
+        Map<String, String> termFilters;
+        Map<String, Map<String, Integer>> rangeFilters;
+
+
+        // Some commonly used regexes
+        String sta_re = "(?:^|\\s+|,\\s*)";
+        String end_re = "(?:\\s+|,|$)";
+        String tofrom_re = "(?:от|до|с|со|по)";
+
+        {
+            boolean matched;
+            Integer exactPrice = null;
+            Integer price1 = null;
+            Integer price2 = null;
+
+            Pattern p;
+            Matcher m;
+
+            do {
+                matched = false;
+
+                String float_re = "\\d+(?:[,.]\\d+)?";
+                String rub_re = "р(?:\\.|(?:уб(?:\\.|лей)?)?)?";
+                String ths_re = "т(?:\\.|(ыс(?:\\.|яч)?)?)?";
+                String mln_re = "(?:(?:млн\\.?)|(?:миллион\\w*))";
+
+                // Range
+
+                p = Pattern.compile(
+                        "s/" + sta_re + "(?:(?:от|с)\\s+)?(" + float_re + ")\\s*(?:до|по|\\-)\\s*(" + float_re + ")\\s*((?:" + rub_re + ")|(?:" + ths_re + "}\\s*" + rub_re + ")|(?:" + mln_re + "\\s*(?:" + rub_re + ")?))" + end_re + "/ /i");
+                m = p.matcher(query);
+                if (m.find()) {
+                    String ss = m.group(3);
+                    price1 = Integer.parseInt(m.group(1));
+                    price2 = Integer.parseInt(m.group(2));
+
+                    if (RegExTest("^" + rub_re + "$", ss)) {
+                        price1 = price1 / 1000;
+                        price2 = price2 / 1000;
+                    } else if (RegExTest("^" + mln_re + "\\s*(?:" + rub_re + ")?$", ss)) {
+                        price1 = price1 * 1000;
+                        price2 = price2 * 1000;
+                    } else {
+
+                    }
+                }
+                // Single value
+                else {
+                    p = Pattern.compile("s/" + sta_re + "(?:(" + tofrom_re + ")\\s+)?(" + float_re + ")\\s*((?:" + rub_re + ")|(?:" + ths_re + "\\s*" + rub_re + "|(?:" + mln_re + "\\s*(?:" + rub_re + ")?))" + end_re + "/ /i");
+                    m = p.matcher(query);
+                    if (m.find()) {
+                        String prefix = m.group(1);
+                        String ss = m.group(3);
+                        Integer price = Integer.parseInt(m.group(2));
+
+                        if (RegExTest("^ " + rub_re + " $", ss)) {
+                            price = price / 1000;
+                        } else if (RegExTest("^ " + mln_re + "\\s * ( ?:" + rub_re + "?$", ss)) {
+                            price = price * 1000;
+                        } else {
+                            price = price;
+                        }
+                        if (prefix.matches("от") || prefix.matches("с")) {
+                            price1 = price;
+                        } else if (prefix.matches("до") || prefix.matches("по")) {
+                            price2 = price;
+                        } else {
+                            exactPrice = price;
+                        }
+                        matched = true;
+                    }
+                }
+            } while (matched == true);
+
+            //$q = trim($q) if $matched;
+
+            if (price1 != null && price2 != null) {
+                Map<String, Integer> t = new HashMap<String, Integer>();
+                t.put("gte", price1);
+                t.put("lte", price2);
+                rangeFilters.put("price", t);
+            } else if (price1 != null) {
+                Map<String, Integer> t = new HashMap<String, Integer>();
+                t.put("gte", price1);
+                rangeFilters.put("price", t);
+            } else if (price2 != null) {
+                Map<String, Integer> t = new HashMap<String, Integer>();
+                t.put("lte", price2);
+                rangeFilters.put("price", t);
+            } else if (exactPrice != null) {
+                termFilters.put("price", exactPrice);
+            }
+        }
+
+        // Rooms count
+        {
+            boolean matched = false;
+            int rooms_count, rooms_count1, rooms_count2;
+            do {
+                matched = false;
+
+                // Range
+                if ($q =~ s/${sta_re}(\d)\s*\-\s*(\d)\s*к(?:\.|(?:омн(?:\.|ат\w*)?)?)?${end_re}/ /i) {
+                    ($rooms_count1, $rooms_count2) = ($1, $2);
+                }
+                // Single value: N комн.
+                else if ($q =~ s/${sta_re}(\d)(?:\-?х\s)?\s*к(?:\.|(?:омн(?:\.|ат\w*)?)?)?${end_re}/ /i) {
+                    $rooms_count = $1;
+                    $matched = 1;
+                }
+                // Single value: [одно|двух|...]комнатная
+                else if ($q =~ s/${sta_re}(одн[оа]|двух|трех|четырех|пяти|шести|семи|восьми|девяти)\s*комн(?:\.|(?:ат\w*)?)?${end_re}/ /i) {
+                    $rooms_count = 1 if $1 eq 'одно' || $1 eq 'одна';
+                    $rooms_count = 2 if $1 eq 'двух';
+                    $rooms_count = 3 if $1 eq 'трех';
+                    $rooms_count = 4 if $1 eq 'четырех';
+                    $rooms_count = 5 if $1 eq 'пяти';
+                    $rooms_count = 6 if $1 eq 'шести';
+                    $rooms_count = 7 if $1 eq 'семи';
+                    $rooms_count = 8 if $1 eq 'восьми';
+                    $rooms_count = 9 if $1 eq 'девяти';
+                    $matched = 1;
+                }
+            } while ($matched);
+
+            //$q = trim($q) if $matched;
+
+            if ($rooms_count1 && $rooms_count2) {
+                push @filters, {range => {rooms_count => {gte => $rooms_count1, lte => $rooms_count2,}}};
+            } elsif ($rooms_count) {
+            push @filters, {term => {rooms_count => $rooms_count}};
+        }
+        }
+
+        // Floor
+        {
+            my ($matched, $exact_floor, $floor1, $floor2);
+            do {
+                $matched = 0;
+
+                my $flr_re = qr/э(?:\.|(?:т(?:\.|аж\w*)?)?)?/;
+
+                # Range
+                if ($q =~ s/${sta_re}(?:(?:от|с|со)\s+)?(\d{1,2})\s*(?:до|по|\-)\s*(\d{1,2})\s*${flr_re}${end_re}/ /i) {
+                    ($floor1, $floor2) = ($1, $2);
+                }
+                # Single value
+                elsif ($q =~ s/${sta_re}(?:(${tofrom_re})\s+)?(\d{1,2})\s*${flr_re}${end_re}/ /i) {
+                    my $prefix = $1 || '';
+                    if ($prefix eq 'до' || $prefix eq 'по') {
+                        $floor2 = $2;
+                    } elsif ($prefix eq 'от' || $prefix eq 'с') {
+                        $floor1 = $2;
+                    } else {
+                        $exact_floor = $2;
+                    }
+                    $matched = 1;
+                }
+            } while ($matched);
+
+            $q = trim($q) if $matched;
+
+            if ($floor1 && $floor2) {
+                push @filters, {range => {floor => {gte => $floor1, lte => $floor2,}}};
+            } elsif ($floor1) {
+            push @filters, {range => {floor => {gte => $floor1,}}};
+        } elsif ($floor2) {
+            push @filters, {range => {floor => {lte => $floor2,}}};
+        } elsif ($exact_floor) {
+            push @filters, {term => {floor => $exact_floor,}};
+        }
+        }
+
+        // Square
+        {
+            my ($matched, $exact_square, $square1, $square2);
+            do {
+                $matched = 0;
+
+                my $sqr_re = qr/(?:кв(?:\.|адратн\w*)?)?\s*м(?:\.|2|етр\w*)?/;
+
+                # Range
+                if ($q =~ s/${sta_re}(?:(?:от|с)\s+)?(\d+)\s*(?:до|по|\-)\s*(\d+)\s*${sqr_re}${end_re}/ /i) {
+                    ($square1, $square2) = ($1, $2);
+                }
+                # Single value
+                elsif ($q =~ s/${sta_re}(?:(${tofrom_re})\s+)?(\d+)\s*${sqr_re}${end_re}/ /i) {
+                    my $prefix = $1 || '';
+                    if ($prefix eq 'до' || $prefix eq 'по') {
+                        $square2 = $2;
+                    } elsif ($prefix eq 'от' || $prefix eq 'с') {
+                        $square1 = $2;
+                    } else {
+                        $exact_square = $2;
+                    };
+                    $matched = 1;
+                }
+            } while ($matched);
+
+            $q = trim($q) if $matched;
+
+            if ($square1 && $square2) {
+                push @filters, {range => {square_total => {gte => $square1, lte => $square2}}};
+            } elsif ($square1) {
+            push @filters, {range => {square_total => {gte => $square1}}};
+        } elsif ($square2) {
+            push @filters, {range => {square_total => {lte => $square2}}};
+        } elsif ($exact_square) {
+            push @filters, {term => {square_total => $exact_square}};
+        }
+        }
+
+        return {q => $q, filters => \@filters,};
+    }
+

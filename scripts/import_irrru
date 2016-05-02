@@ -198,8 +198,20 @@ sub get_url_list {
         my $dom = get_res($page_url, [])->dom;
 
         $quit = 1;
-        $dom->find('div[class~="productGrid"] a[class~="productBlock"]')->each( sub {
-            my $date_str = $_->find('div[class~="productPostDate"]')->first->text;
+        say 'page';
+
+        my $filename = 'page';
+        open(my $fh, '>', $filename);
+        print $fh Dumper $dom;
+        close $fh;
+
+        $dom->find('a[class~="listing__item"]')->each( sub {
+          say '!';
+        });
+
+        $dom->find('a[class~="listing__item"]')->each( sub {
+
+            my $date_str = $_->find('span[class~="listing__itemDate"]')->first->text;
             my $item_url = $_->attr('href');
             my $item_id = '0';
 
@@ -580,7 +592,7 @@ sub get_res {
             'Host' => 'khabarovsk.irr.ru',
             'Connection' => 'keep-alive',
             'Cache-Control' => 'max-age=0',
-            'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36',
+            'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/49.0.2623.108 Chrome/49.0.2623.108 Safari/537.36',
             'Accept-Encoding' => 'gzip,deflate,sdch',
             'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4',
             @$headers,

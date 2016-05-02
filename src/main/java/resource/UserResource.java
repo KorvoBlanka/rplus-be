@@ -20,7 +20,9 @@ import spark.ResponseTransformer;
 import utils.JsonTransformer;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static spark.Spark.get;
 import static spark.Spark.post;
@@ -41,30 +43,55 @@ public class UserResource {
     private void setupEndpoints() {
 
         post(AppConfig.API_CONTEXT + "/user/create", "application/json", (request, response) -> {
-            User result = userService.create(request.body());
+            Map<String, Object> result = new HashMap<>();
+            User user = userService.create(request.body());
+
+            result.put("response", "ok");
+            result.put("result", user);
             response.status(201);
+
             return result;
         }, new JsonTransformer());
 
         put(AppConfig.API_CONTEXT + "/user/update/:id", "application/json", (request, response) -> {
-            User result = userService.update(request.params(":id"), request.body());
+            Map<String, Object> result = new HashMap<>();
+            User user = userService.update(request.params(":id"), request.body());
+
+            result.put("response", "ok");
+            result.put("result", user);
             response.status(202);
+
             return result;
         }, new JsonTransformer());
 
         post(AppConfig.API_CONTEXT + "/user/delete/:id", "application/json", (request, response) -> {
-            User result = userService.delete(request.params(":id"));
+            Map<String, Object> result = new HashMap<>();
+            User user = userService.delete(request.params(":id"));
+
+            result.put("response", "ok");
+            result.put("result", user);
+
             return result;
         }, new JsonTransformer());
 
 
         get(AppConfig.API_CONTEXT + "/user/get/:id", "application/json", (request, response) -> {
-            User result = userService.get(request.params(":id"));
+            Map<String, Object> result = new HashMap<>();
+            User user = userService.get(request.params(":id"));
+
+            result.put("response", "ok");
+            result.put("result", user);
+
             return result;
         }, new JsonTransformer());
 
         get(AppConfig.API_CONTEXT + "/user/list", "application/json", (request, response) -> {
-            List<User> result = userService.list(request.body());
+            Map<String, Object> result = new HashMap<>();
+            List<User> userList = userService.list(request.body());
+
+            result.put("response", "ok");
+            result.put("result", userList);
+
             return result;
         }, new JsonTransformer());
 

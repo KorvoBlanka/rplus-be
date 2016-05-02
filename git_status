@@ -1,0 +1,544 @@
+On branch master
+Your branch is up-to-date with 'origin/master'.
+
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	modified:   scripts/import_irrru
+	new file:   scripts/import_streets
+	deleted:    src/main/java/utils/ObjectIdTypeAdapter.java
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   .idea/compiler.xml
+	deleted:    elastic/data/rplus-dev/nodes/0/_state/global-8.st
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/_state/state-8.st
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_16.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_16.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_16.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1p.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1p.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1p.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1q.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1q.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1q.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1r.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1r.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_1r.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/segments_9
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-12.tlog
+	modified:   elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog.ckp
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/_state/state-8.st
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/segments_a
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-13.tlog
+	modified:   elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog.ckp
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/_state/state-8.st
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i.fdt
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i.fdx
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i.fnm
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i.nvd
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i.nvm
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i_Lucene50_0.doc
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i_Lucene50_0.pos
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i_Lucene50_0.tim
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i_Lucene50_0.tip
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i_Lucene54_0.dvd
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1i_Lucene54_0.dvm
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1j.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1j.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1j.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1k.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1k.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1k.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1u.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1u.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1u.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1v.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1v.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1v.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1w.cfe
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1w.cfs
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_1w.si
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/segments_b
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-13.tlog
+	modified:   elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog.ckp
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/_state/state-8.st
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/segments_9
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-12.tlog
+	modified:   elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog.ckp
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/_state/state-8.st
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/segments_9
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-12.tlog
+	modified:   elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog.ckp
+	deleted:    elastic/data/rplus-dev/nodes/0/indices/rplus-index/_state/state-12.st
+	modified:   notes
+	modified:   rplus-be.iml
+	modified:   scripts/import_irrru
+	modified:   scripts/import_streets
+	modified:   src/main/java/App.java
+	modified:   src/main/java/morphia/entity/Offer.java
+	modified:   src/main/java/morphia/entity/User.java
+	modified:   src/main/java/resource/Maintenance.java
+	modified:   src/main/java/resource/OfferResource.java
+	modified:   src/main/java/resource/UserResource.java
+	modified:   src/main/java/service/OfferService.java
+	modified:   src/main/java/service/UserService.java
+	modified:   src/main/java/tests/ElasticTest.java
+	modified:   src/main/java/utils/JsonTransformer.java
+	modified:   target/classes/App.class
+	modified:   target/classes/morphia/entity/Offer.class
+	modified:   target/classes/morphia/entity/User.class
+	modified:   target/classes/resource/Maintenance.class
+	modified:   target/classes/resource/OfferResource.class
+	modified:   target/classes/resource/UserResource.class
+	modified:   target/classes/service/OfferService.class
+	modified:   target/classes/service/UserService.class
+	modified:   target/classes/tests/ElasticTest.class
+	modified:   target/classes/utils/JsonTransformer.class
+	deleted:    target/classes/utils/ObjectIdTypeAdapter.class
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	elastic/data/rplus-dev/nodes/0/_state/global-51.st
+	elastic/data/rplus-dev/nodes/0/indices/rplus-dict/
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/_state/state-53.st
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23.fdt
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23.fdx
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23.fnm
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23.nvd
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23.nvm
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_2.liv
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_Lucene50_0.doc
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_Lucene50_0.pos
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_Lucene50_0.tim
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_Lucene50_0.tip
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_Lucene54_0.dvd
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_23_Lucene54_0.dvm
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_24.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_24.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_24.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_26.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_26.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_26.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_27.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_27.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/_27.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/index/segments_z
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-18.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-19.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-20.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-21.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-22.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-23.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-24.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-25.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-29.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-30.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-31.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-32.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-33.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-34.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-35.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-36.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-37.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-38.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-39.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-40.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-41.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-42.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-43.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-44.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-45.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-46.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-47.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-48.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-49.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-50.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-51.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-52.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-57.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-57.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-58.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-58.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-59.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-59.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/0/translog/translog-60.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/_state/state-53.st
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/_1y.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/_1y.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/_1y.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/_22.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/_22.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/_22.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/index/segments_v
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-13.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-14.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-19.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-19.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-20.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-20.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-21.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-21.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-22.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-22.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-23.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-23.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-24.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-24.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-25.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-25.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-26.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-26.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-27.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-27.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-28.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-28.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-29.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-29.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-30.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-30.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-31.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-31.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-32.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-32.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-33.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-33.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-34.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-34.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-35.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-35.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-36.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-36.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-37.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-37.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-38.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-38.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-39.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-39.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-40.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-40.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-41.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-41.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-42.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-42.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-43.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-43.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-44.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-44.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-45.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-45.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-46.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-46.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-47.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-47.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-48.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-48.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-49.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-49.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-50.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-50.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-51.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-51.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-52.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-52.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-53.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-53.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-54.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-54.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-55.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-55.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-56.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-56.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-57.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-57.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/1/translog/translog-58.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/_state/state-51.st
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21.fdt
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21.fdx
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21.fnm
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21.nvd
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21.nvm
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21_Lucene50_0.doc
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21_Lucene50_0.pos
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21_Lucene50_0.tim
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21_Lucene50_0.tip
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21_Lucene54_0.dvd
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_21_Lucene54_0.dvm
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_22.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_22.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_22.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_23.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_23.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_23.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_24.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_24.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/_24.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/index/segments_y
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-18.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-18.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-19.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-19.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-20.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-20.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-21.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-21.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-22.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-22.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-23.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-23.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-24.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-24.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-25.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-25.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-26.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-26.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-27.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-27.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-28.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-28.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-29.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-29.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-30.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-30.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-31.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-31.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-32.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-32.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-33.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-33.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-34.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-34.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-35.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-35.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-36.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-36.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-37.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-37.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-38.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-38.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-39.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-39.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-40.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-40.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-41.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-41.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-42.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-42.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-43.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-43.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-44.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-44.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-45.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-45.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-46.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-46.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-47.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-47.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-48.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-48.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-49.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-49.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-50.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-50.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-51.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-51.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-52.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-52.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-53.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-53.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-54.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-54.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-55.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-55.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-56.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-56.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-57.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-57.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/2/translog/translog-58.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/_state/state-51.st
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_13_1.liv
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_1s.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_1s.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_1s.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_1x.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_1x.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_1x.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_20.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_20.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/_20.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/index/segments_v
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-12.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-13.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-18.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-19.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-20.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-21.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-25.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-25.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-26.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-26.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-27.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-27.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-28.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-28.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-29.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-29.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-30.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-30.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-31.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-31.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-32.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-32.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-33.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-33.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-34.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-34.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-35.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-35.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-36.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-36.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-37.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-37.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-38.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-38.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-39.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-39.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-40.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-40.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-41.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-41.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-42.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-42.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-43.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-43.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-44.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-44.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-45.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-45.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-46.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-46.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-47.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-47.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-48.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-48.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-49.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-49.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-50.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-50.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-51.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-51.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-52.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-52.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-53.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-53.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-54.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-54.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-55.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-55.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-56.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-56.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-57.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-57.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/3/translog/translog-58.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/_state/state-51.st
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/_1t.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/_1t.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/_1t.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/_1y.cfe
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/_1y.cfs
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/_1y.si
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/index/segments_u
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-12.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-13.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-18.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-18.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-19.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-19.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-20.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-20.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-21.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-21.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-22.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-22.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-23.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-23.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-24.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-24.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-25.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-25.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-26.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-26.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-27.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-27.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-28.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-28.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-29.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-29.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-30.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-30.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-31.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-31.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-32.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-32.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-33.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-33.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-34.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-34.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-35.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-35.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-36.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-36.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-37.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-37.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-38.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-38.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-39.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-39.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-40.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-40.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-41.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-41.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-42.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-42.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-43.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-43.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-44.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-44.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-45.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-45.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-46.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-46.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-47.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-47.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-48.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-48.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-49.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-49.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-50.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-50.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-51.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-51.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-52.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-52.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-53.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-53.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-54.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-54.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-55.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-55.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-56.ckp
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-56.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/4/translog/translog-57.tlog
+	elastic/data/rplus-dev/nodes/0/indices/rplus-index/_state/state-58.st
+	elastic/data/rplus-dev/nodes/1/
+	git_status
+	scripts/street_list
+	scripts/town_list
+	target/classes/service/OfferService$FilterObject.class
+

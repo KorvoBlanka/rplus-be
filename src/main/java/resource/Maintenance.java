@@ -10,6 +10,7 @@ import service.PhotoService;
 import utils.CommonUtils;
 import utils.JsonTransformer;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,17 +37,19 @@ public class Maintenance {
     private void setupEndpoints() {
 
         post(AppConfig.SERVICE_CONTEXT + "/offer/put", "application/json", (request, response) -> {
-            Offer result = offerService.create(request.body());
+            Map<String, Object> result = new HashMap<>();
+            Offer offer = offerService.create(request.body());
+
+            result.put("response", "ok");
+            result.put("result", offer);
             response.status(201);
+
             return result;
         }, new JsonTransformer());
 
         post(AppConfig.SERVICE_CONTEXT + "/photo/put/:id", "application/json", (request, response) -> {
 
             Map<String, String> photo = CommonUtils.JsonToMap(request.body());
-
-
-
             photoService.put(request.params(":id"), photo.get("url"));
             response.status(201);
             return null;

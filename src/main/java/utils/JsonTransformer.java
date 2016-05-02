@@ -11,7 +11,7 @@ import spark.ResponseTransformer;
  */
 public class JsonTransformer implements ResponseTransformer {
 
-    Gson gson = new GsonBuilder().registerTypeAdapter(ObjectId.class, new ObjectIdTypeAdapter()).create();
+    Gson gson = new GsonBuilder().create();
 
     @Override
     public String render(Object model) {

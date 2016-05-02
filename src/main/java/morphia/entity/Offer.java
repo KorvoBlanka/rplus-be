@@ -1,8 +1,6 @@
 package morphia.entity;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +12,9 @@ import java.lang.reflect.Field;
  */
 
 
-@Entity("offers")
 public class Offer {
-    @Id
-    public ObjectId id;
+
+    public String id;
 
     public String state_code;
     public Long state_change_date;
@@ -85,7 +82,9 @@ public class Offer {
     public GeoLocation location;
     public String photo_thumbnail;
     //attachments
-
+    public String[] tags;
+    public String[] descriptionTags;
+    public String[] mediaTextTags;
     //account_id
     //hidden_for
 
@@ -94,14 +93,21 @@ public class Offer {
     public Offer() {
         Logger logger = LoggerFactory.getLogger(Offer.class);
 
-        for (Field field : Offer.class.getFields())
-        {
-            try{
-            //field.set(this, null);
-            } catch (Exception ex) {
-                logger.info(ex.toString());
-            }
+    }
 
+    public void GenerateTags() {
+
+        tags = new String[] {};
+        descriptionTags = new String[] {};
+        mediaTextTags = new String[] {};
+        String delimiters = " ";
+
+        if (description != null) {
+            descriptionTags = description.split(delimiters);
+        }
+
+        if (source_media_text != null) {
+            mediaTextTags = source_media_text.split(delimiters);
         }
     }
 

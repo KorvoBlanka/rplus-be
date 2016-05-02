@@ -1,13 +1,26 @@
 package service; /**
  * Created by owl on 3/23/16.
  */
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mongodb.WriteResult;
 import morphia.entity.User;
 import org.bson.types.ObjectId;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.CommonUtils;
 
 import java.util.*;
@@ -16,64 +29,97 @@ import java.util.*;
 public class UserService {
     Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    private final Datastore ds;
+    private final Client elasticClient;
+    private final String E_INDEX = "rplus-index";
+    private final String E_TYPE = "users";
 
-    public UserService(Datastore ds) {
-        this.ds = ds;
+    Gson gson = new GsonBuilder().create();
+
+    public UserService(Client elasticClient) {
+        this.elasticClient = elasticClient;
     }
 
     public List<User> list(String filter) {
-        List<User> result = new LinkedList<User>();
+        this.logger.info("list");
 
-        for (User u : ds.find(User.class)) {
-            result.add(u);
+        List<User> userList = new LinkedList<>();
+
+        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+
+        SearchResponse response = req.execute().actionGet();
+
+        for (SearchHit sh: response.getHits()) {
+            User u = gson.fromJson(sh.getSourceAsString(), User.class);
+            u.id = sh.getId();
+            userList.add(u);
         }
 
-        return result;
+        return userList;
     }
 
     public User get(String id) {
         this.logger.info("get");
 
-        User result = ds.get(User.class, new ObjectId(id));
-        this.logger.info(result.name);
-        return result;
+        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
+        User user = gson.fromJson(response.getSourceAsString(), User.class);
+        user.id = response.getId();
+
+        return user;
     }
 
     public User getByName(String name) {
         this.logger.info("get by name");
         this.logger.info(name);
 
-        User result = ds.find(User.class).field("name").equal(name).get();
-        return result;
+        User user = null;
+
+        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(QueryBuilders.termQuery("name", name));
+
+        SearchResponse response = req.execute().actionGet();
+
+        if (response.getHits().getTotalHits() > 0) {
+            user = gson.fromJson(response.getHits().getAt(0).getSourceAsString(), User.class);
+        }
+
+        return user;
     }
 
-    public User update(String id, String body) {
+    public User update(String id, String body) throws Exception {
         this.logger.info("update");
 
-        Map<String, String> map = CommonUtils.JsonToMap(body);
+        User tOffer = gson.fromJson(body, User.class);
+        //t_offer.GenerateTags();
 
-        User user = ds.get(User.class, new ObjectId(id));
-        UpdateResults result = ds.update(user, ds.createUpdateOperations(User.class).set("name", map.get("name")));
-        user = ds.get(User.class, new ObjectId(id));
+        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOffer));
+        UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
+
+        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
+        User user = gson.fromJson(response.getSourceAsString(), User.class);
+        user.id = response.getId();
+
         return user;
     }
 
     public User create(String body) throws Exception {
         this.logger.info("create");
 
-        Map<String, String> values = CommonUtils.JsonToMap(body);
+        User tOffer = gson.fromJson(body, User.class);
+        //tOffer.GenerateTags();
 
-        User user = new User(values);
+        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOffer)).execute().actionGet();
+        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
+        User user = gson.fromJson(response.getSourceAsString(), User.class);
+        user.id = response.getId();
 
-        ObjectId id = (ObjectId)ds.save(user).getId();
-        User result = ds.get(User.class, id);
-        return result;
+        return user;
     }
 
     public User delete(String id) {
-        User user = ds.get(User.class, new ObjectId(id));
-        WriteResult wr = ds.delete(User.class, new ObjectId(id));
-        return user;
+        throw new NotImplementedException();
     }
 }

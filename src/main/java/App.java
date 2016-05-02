@@ -52,8 +52,8 @@ public class App {
         App.elasticService = new ElasticService(ec);
 
         Datastore ds = getDatastore();
-        App.userService = new UserService(ds);
-        App.offerService = new OfferService(ds, ec);
+        App.userService = new UserService(ec);
+        App.offerService = new OfferService(ec);
         App.photoService = new PhotoService(ds);
 
         new Authorisation();
@@ -86,9 +86,6 @@ public class App {
         options.setStoreEmpties(true);
         options.setStoreNulls(true);
         morphia.getMapper().setOptions(options);
-
-        morphia.map(User.class);
-        morphia.map(Offer.class);
 
         Datastore ds = morphia.createDatastore(mongoClient, "rplus-dev");
 
