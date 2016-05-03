@@ -5,21 +5,12 @@ package resource; /**
 
 import Configuration.AppConfig;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import com.mongodb.WriteResult;
-import morphia.entity.User;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.query.UpdateResults;
+import entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UserService;
-import spark.ResponseTransformer;
 import utils.JsonTransformer;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

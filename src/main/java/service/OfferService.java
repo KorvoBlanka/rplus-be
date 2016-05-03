@@ -2,7 +2,7 @@ package service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import morphia.entity.Offer;
+import entity.Offer;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -403,15 +403,6 @@ public class OfferService {
 
     public List<Offer> list(int page, int perPage, Map<String, Integer> filter, String searchQuery) {
         List<Offer> offerList = new LinkedList<>();
-
-        /*
-        for (Offer o : ds.find(Offer.class).limit(perPage).offset(page * perPage)) {
-            result.add(o);
-        }
-        */
-        // client.prepareSearch("index1", "index2").setTypes("type1", "type2")
-        // .setQuery(QueryBuilders.termQuery("multi", "test"))                 // Query
-        // .setPostFilter(QueryBuilders.rangeQuery("age").from(12).to(18))     // Filter
 
         Map<String, String> queryParts = processQuery(searchQuery);
 

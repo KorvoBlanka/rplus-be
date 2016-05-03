@@ -3,9 +3,7 @@ package service; /**
  */
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mongodb.WriteResult;
-import morphia.entity.User;
-import org.bson.types.ObjectId;
+import entity.User;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -16,12 +14,9 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import utils.CommonUtils;
 
 import java.util.*;
 

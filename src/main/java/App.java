@@ -4,9 +4,6 @@
 
 import Configuration.AppConfig;
 import com.mongodb.*;
-import morphia.entity.User;
-import morphia.entity.Offer;
-import org.eclipse.jetty.server.Request;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
@@ -15,22 +12,11 @@ import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.mapping.MapperOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import resource.Maintenance;
-import resource.OfferResource;
-import resource.PhotoResource;
-import resource.UserResource;
-import service.ElasticService;
-import service.OfferService;
-import service.PhotoService;
-import service.UserService;
-import spark.Filter;
+import resource.*;
+import service.*;
 import spark.Spark;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-import static spark.Spark.*;
 
 
 public class App {
@@ -39,7 +25,10 @@ public class App {
     static ElasticService elasticService;
 
     static UserService userService;
+    static OrganisationService orgService;
+    static PersonService personService;
     static OfferService offerService;
+
     static PhotoService photoService;
 
     public static void main(String[] args) throws Exception {
@@ -52,14 +41,23 @@ public class App {
         App.elasticService = new ElasticService(ec);
 
         Datastore ds = getDatastore();
+
+        // services
         App.userService = new UserService(ec);
+        App.orgService = new OrganisationService(ec);
+        App.personService = new PersonService(ec);
         App.offerService = new OfferService(ec);
+
         App.photoService = new PhotoService(ds);
 
+        // resources
         new Authorisation();
         new Maintenance(App.offerService, App.photoService);
         new UserResource(App.userService);
+        new OrganisationResource(App.orgService);
+        new PersonResource(App.personService);
         new OfferResource(App.offerService);
+
         new PhotoResource(App.photoService);
         //new PersonResource(App.person_service);
         //new RealtyResource(App.realty_service);

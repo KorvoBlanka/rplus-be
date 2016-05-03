@@ -2,7 +2,7 @@ package resource;
 
 import Configuration.AppConfig;
 import com.google.gson.Gson;
-import morphia.entity.Offer;
+import entity.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.OfferService;
@@ -11,7 +11,6 @@ import utils.CommonUtils;
 import utils.JsonTransformer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static spark.Spark.post;

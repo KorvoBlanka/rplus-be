@@ -1,13 +1,10 @@
 package resource;
 
 import Configuration.AppConfig;
-import com.google.gson.Gson;
-import morphia.entity.Offer;
-import morphia.entity.User;
+import entity.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.OfferService;
-import service.UserService;
 import utils.JsonTransformer;
 
 import java.util.HashMap;

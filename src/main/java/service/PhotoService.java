@@ -1,9 +1,7 @@
 package service;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import morphia.entity.Offer;
-import morphia.entity.Photo;
+import entity.Offer;
+import entity.Photo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
