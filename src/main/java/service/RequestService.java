@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import entity.Organisation;
 import entity.Person;
+import entity.Request;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -24,16 +25,16 @@ import java.util.List;
 /**
  * Created by owl on 5/3/16.
  */
-public class PersonService {
-    Logger logger = LoggerFactory.getLogger(PersonService.class);
+public class RequestService {
+    Logger logger = LoggerFactory.getLogger(RequestService.class);
 
     private final Client elasticClient;
     private final String E_INDEX = "rplus-index";
-    private final String E_TYPE = "persons";
+    private final String E_TYPE = "requests";
 
     Gson gson = new GsonBuilder().create();
 
-    public PersonService(Client elasticClient) {
+    public RequestService(Client elasticClient) {
         this.elasticClient = elasticClient;
     }
 
@@ -45,98 +46,77 @@ public class PersonService {
         return org;
     }
 
-    public List<Person> list(int page, int perPage, String organisationId, String searchQuery) {
+    public List<Request> list(int page, int perPage, String personId, String searchQuery) {
         logger.info("list");
 
-        List<Person> personList = new LinkedList<>();
+        List<Request> requestList = new LinkedList<>();
 
         SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
                 .setTypes(E_TYPE)
                 .setSearchType(SearchType.DEFAULT)
                 .setFrom(page * perPage).setSize(perPage);
 
-        if (organisationId.length() > 0) {
-            logger.info("org_id - " + organisationId);
-            req.setQuery(QueryBuilders.matchQuery("organisation_id", organisationId));
+        if (personId.length() > 0) {
+            req.setQuery(QueryBuilders.matchQuery("person_id", personId));
         }
 
         if (searchQuery.length() > 0) {
-            logger.info("s_query - " + searchQuery);
             req.setQuery(QueryBuilders.prefixQuery("_all", searchQuery));
         }
 
         SearchResponse response = req.execute().actionGet();
 
         for (SearchHit sh: response.getHits()) {
-            Person person = gson.fromJson(sh.getSourceAsString(), Person.class);
-            person.id = sh.getId();
+            Request request = gson.fromJson(sh.getSourceAsString(), Request.class);
+            request.id = sh.getId();
 
-            if (person.organisation_id != null) {
-                Organisation org = getOrganisationById(person.organisation_id);
-                person.organisation_name = org.name;
-            }
-
-            personList.add(person);
+            requestList.add(request);
         }
 
-        return personList;
+        return requestList;
     }
 
-    public Person get(String id) {
+    public Request get(String id) {
         this.logger.info("get");
 
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        Person person = gson.fromJson(response.getSourceAsString(), Person.class);
-        person.id = response.getId();
+        Request request = gson.fromJson(response.getSourceAsString(), Request.class);
+        request.id = response.getId();
 
-        if (person.organisation_id != null) {
-            Organisation org = getOrganisationById(person.organisation_id);
-            person.organisation_name = org.name;
-        }
-
-        return person;
+        return request;
     }
 
-    public Person update(String id, String body) throws Exception {
+    public Request update(String id, String body) throws Exception {
         this.logger.info("update");
 
-        Person tOrg = gson.fromJson(body, Person.class);
+        Request tOrg = gson.fromJson(body, Request.class);
         //t_offer.GenerateTags();
 
         UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
 
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        Person person = gson.fromJson(response.getSourceAsString(), Person.class);
-        person.id = response.getId();
+        Request request = gson.fromJson(response.getSourceAsString(), Request.class);
+        request.id = response.getId();
 
-        if (person.organisation_id != null) {
-            Organisation org = getOrganisationById(person.organisation_id);
-            person.organisation_name = org.name;
-        }
 
-        return person;
+        return request;
     }
 
-    public Person create(String body) throws Exception {
+    public Request create(String body) throws Exception {
         this.logger.info("create");
 
-        Person tOrg = gson.fromJson(body, Person.class);
+        Request tReq = gson.fromJson(body, Request.class);
 
-        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOrg)).execute().actionGet();
+        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tReq)).execute().actionGet();
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
-        Person person = gson.fromJson(response.getSourceAsString(), Person.class);
-        person.id = response.getId();
+        Request request = gson.fromJson(response.getSourceAsString(), Request.class);
+        request.id = response.getId();
 
-        if (person.organisation_id != null) {
-            Organisation org = getOrganisationById(person.organisation_id);
-            person.organisation_name = org.name;
-        }
-
-        return person;
+        return request;
     }
 
-    public Person delete(String id) {
+    public Request delete(String id) {
         throw new NotImplementedException();
     }
 }

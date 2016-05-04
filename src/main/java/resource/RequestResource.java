@@ -3,10 +3,12 @@ package resource;
 import Configuration.AppConfig;
 import com.google.gson.Gson;
 import entity.Person;
+import entity.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.OrganisationService;
 import service.PersonService;
+import service.RequestService;
 import utils.JsonTransformer;
 
 import java.util.HashMap;
@@ -20,70 +22,70 @@ import static spark.Spark.put;
 /**
  * Created by owl on 5/3/16.
  */
-public class PersonResource {
-    Logger logger = LoggerFactory.getLogger(PersonResource.class);
+public class RequestResource {
+    Logger logger = LoggerFactory.getLogger(RequestResource.class);
 
-    private final PersonService personService;
+    private final RequestService requestService;
 
     Gson gson = new Gson();
 
-    public PersonResource(PersonService personService) {
-        this.personService = personService;
+    public RequestResource(RequestService requestService) {
+        this.requestService = requestService;
         setupEndpoints();
     }
 
     private void setupEndpoints() {
 
-        post(AppConfig.API_CONTEXT + "/person/create", "application/json", (request, response) -> {
+        post(AppConfig.API_CONTEXT + "/request/create", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
-            Person person = personService.create(request.body());
+            Request _request = requestService.create(request.body());
 
             result.put("response", "ok");
-            result.put("result", person);
+            result.put("result", _request);
             response.status(201);
 
             return result;
         }, new JsonTransformer());
 
-        post(AppConfig.API_CONTEXT + "/person/update/:id", "application/json", (request, response) -> {
+        post(AppConfig.API_CONTEXT + "/request/update/:id", "application/json", (request, response) -> {
 
             Map<String, Object> result = new HashMap<>();
-            Person person = personService.update(request.params(":id"), request.body());
+            Request _request = requestService.update(request.params(":id"), request.body());
 
             result.put("response", "ok");
-            result.put("result", person);
+            result.put("result", _request);
             response.status(202);
 
             return result;
         }, new JsonTransformer());
 
-        post(AppConfig.API_CONTEXT + "/person/delete/:id", "application/json", (request, response) -> {
+        post(AppConfig.API_CONTEXT + "/request/delete/:id", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
-            Person person = personService.delete(request.params(":id"));
+            Request _request = requestService.delete(request.params(":id"));
 
             result.put("response", "ok");
-            result.put("result", person);
+            result.put("result", _request);
 
             return result;
         }, new JsonTransformer());
 
 
-        get(AppConfig.API_CONTEXT + "/person/get/:id", "application/json", (request, response) -> {
+        get(AppConfig.API_CONTEXT + "/request/get/:id", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
-            Person person = personService.get(request.params(":id"));
+            Request _request = requestService.get(request.params(":id"));
 
             result.put("response", "ok");
-            result.put("result", person);
+            result.put("result", _request);
 
             return result;
         }, new JsonTransformer());
 
-        get(AppConfig.API_CONTEXT + "/person/list", "application/json", (request, response) -> {
+        get(AppConfig.API_CONTEXT + "/request/list", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
 
             int page = 0;
             int perPage = 32;
-            String organisationId = "";
+            String personId = "";
             String searchQuery = "";
 
             if (request.queryParams("page") != null) {
@@ -92,17 +94,17 @@ public class PersonResource {
             if (request.queryParams("per_page") != null) {
                 perPage = Integer.parseInt(request.queryParams("per_page"));
             }
-            if (request.queryParams("organisation_id") != null) {
-                organisationId = request.queryParams("organisation_id");
+            if (request.queryParams("person_id") != null) {
+                personId = request.queryParams("person_id");
             }
             if (request.queryParams("search_query") != null) {
                 searchQuery = request.queryParams("search_query");
             }
 
-            List<Person> personList = personService.list(page, perPage, organisationId, searchQuery);
+            List<Request> requestList = requestService.list(page, perPage, personId, searchQuery);
 
             result.put("response", "ok");
-            result.put("result", personList);
+            result.put("result", requestList);
 
             return result;
         }, new JsonTransformer());

@@ -4,6 +4,7 @@
 
 import Configuration.AppConfig;
 import com.mongodb.*;
+import entity.Request;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
@@ -28,6 +29,7 @@ public class App {
     static OrganisationService orgService;
     static PersonService personService;
     static OfferService offerService;
+    static RequestService requestService;
 
     static PhotoService photoService;
 
@@ -47,6 +49,7 @@ public class App {
         App.orgService = new OrganisationService(ec);
         App.personService = new PersonService(ec);
         App.offerService = new OfferService(ec);
+        App.requestService = new RequestService(ec);
 
         App.photoService = new PhotoService(ds);
 
@@ -57,6 +60,7 @@ public class App {
         new OrganisationResource(App.orgService);
         new PersonResource(App.personService);
         new OfferResource(App.offerService);
+        new RequestResource(App.requestService);
 
         new PhotoResource(App.photoService);
         //new PersonResource(App.person_service);
