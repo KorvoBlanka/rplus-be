@@ -44,7 +44,8 @@ public class UserResource {
             return result;
         }, new JsonTransformer());
 
-        put(AppConfig.API_CONTEXT + "/user/update/:id", "application/json", (request, response) -> {
+
+        post(AppConfig.API_CONTEXT + "/user/update/:id", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
             User user = userService.update(request.params(":id"), request.body());
 
@@ -54,6 +55,7 @@ public class UserResource {
 
             return result;
         }, new JsonTransformer());
+
 
         post(AppConfig.API_CONTEXT + "/user/delete/:id", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
@@ -76,9 +78,16 @@ public class UserResource {
             return result;
         }, new JsonTransformer());
 
+
         get(AppConfig.API_CONTEXT + "/user/list", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
-            List<User> userList = userService.list(request.body());
+
+            String role = "";
+            if (request.queryParams("role") != null) {
+                role = request.queryParams("role");
+            }
+
+            List<User> userList = userService.list(role, "");
 
             result.put("response", "ok");
             result.put("result", userList);

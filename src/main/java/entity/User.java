@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
  */
 public class User {
     public String id;
+    public String manager_id;
     public String name;
+    public String role;
     public String password;
     //private Date create_ts;
 

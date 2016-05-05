@@ -37,14 +37,6 @@ public class PersonService {
         this.elasticClient = elasticClient;
     }
 
-    private Organisation getOrganisationById(String id) {
-        GetResponse response = elasticClient.prepareGet(E_INDEX, "organisations", id).get();
-        Organisation org = gson.fromJson(response.getSourceAsString(), Organisation.class);
-        org.id = response.getId();
-
-        return org;
-    }
-
     public List<Person> list(int page, int perPage, String organisationId, String searchQuery) {
         logger.info("list");
 
@@ -71,9 +63,12 @@ public class PersonService {
             Person person = gson.fromJson(sh.getSourceAsString(), Person.class);
             person.id = sh.getId();
 
-            if (person.organisation_id != null) {
-                Organisation org = getOrganisationById(person.organisation_id);
-                person.organisation_name = org.name;
+            if (person.phone == null) {
+                person.phone = new String[] {""};
+            }
+
+            if (person.email == null) {
+                person.email = new String[] {""};
             }
 
             personList.add(person);
@@ -89,9 +84,12 @@ public class PersonService {
         Person person = gson.fromJson(response.getSourceAsString(), Person.class);
         person.id = response.getId();
 
-        if (person.organisation_id != null) {
-            Organisation org = getOrganisationById(person.organisation_id);
-            person.organisation_name = org.name;
+        if (person.phone == null) {
+            person.phone = new String[] {""};
+        }
+
+        if (person.email == null) {
+            person.email = new String[] {""};
         }
 
         return person;
@@ -101,7 +99,6 @@ public class PersonService {
         this.logger.info("update");
 
         Person tOrg = gson.fromJson(body, Person.class);
-        //t_offer.GenerateTags();
 
         UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
@@ -109,11 +106,6 @@ public class PersonService {
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
         Person person = gson.fromJson(response.getSourceAsString(), Person.class);
         person.id = response.getId();
-
-        if (person.organisation_id != null) {
-            Organisation org = getOrganisationById(person.organisation_id);
-            person.organisation_name = org.name;
-        }
 
         return person;
     }
@@ -127,11 +119,6 @@ public class PersonService {
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
         Person person = gson.fromJson(response.getSourceAsString(), Person.class);
         person.id = response.getId();
-
-        if (person.organisation_id != null) {
-            Organisation org = getOrganisationById(person.organisation_id);
-            person.organisation_name = org.name;
-        }
 
         return person;
     }

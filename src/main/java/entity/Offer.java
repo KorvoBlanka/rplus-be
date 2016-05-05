@@ -68,8 +68,8 @@ public class Offer {
 
     public String landmark;
 
-    public Integer owner_id;
-    public Integer agent_id;
+    public String owner_id;
+    public String agent_id;
     public Long assign_date;
 
     public Boolean multylisting;

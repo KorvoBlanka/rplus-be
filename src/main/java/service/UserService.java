@@ -34,7 +34,7 @@ public class UserService {
         this.elasticClient = elasticClient;
     }
 
-    public List<User> list(String filter) {
+    public List<User> list(String role, String searchQuery) {
         this.logger.info("list");
 
         List<User> userList = new LinkedList<>();
@@ -42,6 +42,14 @@ public class UserService {
         SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
                 .setTypes(E_TYPE)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+
+        if (role.length() > 0) {
+            req.setQuery(QueryBuilders.matchQuery("role", role));
+        }
+
+        if (searchQuery.length() > 0) {
+            req.setQuery(QueryBuilders.prefixQuery("_all", searchQuery));
+        }
 
         SearchResponse response = req.execute().actionGet();
 
