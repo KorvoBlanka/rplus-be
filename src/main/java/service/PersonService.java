@@ -99,6 +99,8 @@ public class PersonService {
         this.logger.info("update");
 
         Person tOrg = gson.fromJson(body, Person.class);
+        tOrg.change_date = System.currentTimeMillis() / 1000L;
+        // make history record
 
         UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
@@ -114,6 +116,9 @@ public class PersonService {
         this.logger.info("create");
 
         Person tOrg = gson.fromJson(body, Person.class);
+        tOrg.add_date = System.currentTimeMillis() / 1000L;
+        tOrg.change_date = System.currentTimeMillis() / 1000L;
+        // make history record
 
         IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOrg)).execute().actionGet();
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();

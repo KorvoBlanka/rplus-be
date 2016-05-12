@@ -9,12 +9,10 @@ my $e = Search::Elasticsearch->new();
 # Connect to cluster at search1:9200, sniff all nodes and round-robin between them:
 
 my $e = Search::Elasticsearch->new(
-    nodes    => 'localhost:9200',
+    nodes => 'localhost:9200',
 );
 
-$e->indices->delete(index=>'rplus-dict');
-
-{
+if (1 == 1) {
     my $filename = 'town_list';
 
     open(my $fh, '<:encoding(UTF-8)', $filename)
@@ -43,8 +41,6 @@ if (1 == 1) {
     my $filename = 'street_list';
     open(my $fh, '<:encoding(UTF-8)', $filename)
       or die "Could not open file '$filename' $!";
-
-    $e->indices->delete(index=>'rplus-dict');
 
     my $idx = 1;
     while (my $row = <$fh>) {

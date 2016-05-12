@@ -95,10 +95,10 @@ public class UserService {
     public User update(String id, String body) throws Exception {
         this.logger.info("update");
 
-        User tOffer = gson.fromJson(body, User.class);
-        //t_offer.GenerateTags();
+        User tUser = gson.fromJson(body, User.class);
+        tUser.change_date = System.currentTimeMillis() / 1000L;
 
-        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOffer));
+        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tUser));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
 
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
@@ -111,10 +111,11 @@ public class UserService {
     public User create(String body) throws Exception {
         this.logger.info("create");
 
-        User tOffer = gson.fromJson(body, User.class);
-        //tOffer.GenerateTags();
+        User tUser = gson.fromJson(body, User.class);
+        tUser.add_date = System.currentTimeMillis() / 1000L;
+        tUser.change_date = System.currentTimeMillis() / 1000L;
 
-        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOffer)).execute().actionGet();
+        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tUser)).execute().actionGet();
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
         User user = gson.fromJson(response.getSourceAsString(), User.class);
         user.id = response.getId();

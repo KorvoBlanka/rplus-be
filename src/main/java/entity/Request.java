@@ -10,7 +10,9 @@ public class Request {
     public String person_id;
 
     public String request;
+
     public Long add_date;
+    public Long change_date;
 
     public String search_area;
 }

@@ -15,6 +15,9 @@ public class User {
     public String password;
     //private Date create_ts;
 
+    public Long add_date;
+    public Long change_date;
+
     private User() {
         Logger logger = LoggerFactory.getLogger(User.class);
     }

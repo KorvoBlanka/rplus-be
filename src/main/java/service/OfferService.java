@@ -369,7 +369,7 @@ public class OfferService {
             req = elasticClient.prepareSearch("rplus-dict")
                     .setTypes("cities")
                     .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
-            req.setQuery(QueryBuilders.termQuery ("name", term.toLowerCase()));
+            req.setQuery(QueryBuilders.fuzzyQuery ("name", term.toLowerCase()));
             response = req.execute().actionGet();
             if (response.getHits().getTotalHits() > 0) {
                 termList.add(term);
@@ -380,7 +380,7 @@ public class OfferService {
                     .setTypes("streets")
                     .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
             // если нашил город добавить условие
-            req.setQuery(QueryBuilders.termQuery ("name", term.toLowerCase()));
+            req.setQuery(QueryBuilders.fuzzyQuery ("name", term.toLowerCase()));
             response = req.execute().actionGet();
             if (response.getHits().getTotalHits() > 0) {
                 termList.add(term);
@@ -457,7 +457,7 @@ public class OfferService {
         }
 
         if (addressParts.size() > 0) {
-            req.setQuery(QueryBuilders.matchPhraseQuery("address", String.join(" ", addressParts)));
+            req.setQuery(QueryBuilders.matchQuery("address", String.join(" ", addressParts)));
         }
 
         if (searchQuery.length() > 0) {
@@ -492,6 +492,7 @@ public class OfferService {
 
         Offer tOffer = gson.fromJson(body, Offer.class);
         tOffer.GenerateTags();
+        tOffer.change_date = System.currentTimeMillis() / 1000L;
 
         UpdateRequest updateRequest = new UpdateRequest("rplus-index", "offers", id).doc(gson.toJson(tOffer));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
@@ -508,6 +509,8 @@ public class OfferService {
 
         Offer tOffer = gson.fromJson(body, Offer.class);
         tOffer.GenerateTags();
+        tOffer.add_date = System.currentTimeMillis() / 1000L;
+        tOffer.change_date = System.currentTimeMillis() / 1000L;
 
         IndexResponse idxResponse = elasticClient.prepareIndex("rplus-index", "offers").setSource(gson.toJson(tOffer)).execute().actionGet();
         GetResponse response = elasticClient.prepareGet("rplus-index", "offers", idxResponse.getId()).get();

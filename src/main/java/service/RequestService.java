@@ -89,10 +89,10 @@ public class RequestService {
     public Request update(String id, String body) throws Exception {
         this.logger.info("update");
 
-        Request tOrg = gson.fromJson(body, Request.class);
-        //t_offer.GenerateTags();
+        Request tReq = gson.fromJson(body, Request.class);
+        tReq.change_date = System.currentTimeMillis() / 1000L;
 
-        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
+        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tReq));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
 
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
@@ -107,6 +107,8 @@ public class RequestService {
         this.logger.info("create");
 
         Request tReq = gson.fromJson(body, Request.class);
+        tReq.add_date = System.currentTimeMillis() / 1000L;
+        tReq.change_date = System.currentTimeMillis() / 1000L;
 
         IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tReq)).execute().actionGet();
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();

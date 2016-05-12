@@ -75,6 +75,7 @@ public class OrganisationService {
         this.logger.info("update");
 
         Organisation tOrg = gson.fromJson(body, Organisation.class);
+        tOrg.change_date = System.currentTimeMillis() / 1000L;
 
         UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
         UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
@@ -90,6 +91,8 @@ public class OrganisationService {
         this.logger.info("create");
 
         Organisation tOrg = gson.fromJson(body, Organisation.class);
+        tOrg.add_date = System.currentTimeMillis() / 1000L;
+        tOrg.change_date = System.currentTimeMillis() / 1000L;
 
         IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOrg)).execute().actionGet();
         GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
