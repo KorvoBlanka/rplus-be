@@ -281,9 +281,13 @@ sub process_url_list {
             type_code => $type_code,
             offer_type_code => $offer_type,
 
+            locality => undef,
             address => undef,
-            #house_num ap_num
-            #public String house_type;
+            house_num => undef,
+            ap_num => undef,
+
+            district => undef,
+            house_type => undef,
 
             ap_scheme => undef,
             rooms_count => undef,
@@ -329,7 +333,8 @@ sub process_url_list {
             #latitude
             #longitude
 
-            landmark => undef,
+            pois => undef,
+            poi => undef,
 
             owner_id => undef,
             agent_id => undef,

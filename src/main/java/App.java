@@ -2,9 +2,8 @@
  * Created by owl on 3/23/16.
  */
 
-import Configuration.AppConfig;
+import configuration.AppConfig;
 import com.mongodb.*;
-import entity.Request;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;

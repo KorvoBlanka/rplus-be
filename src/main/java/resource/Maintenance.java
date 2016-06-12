@@ -1,6 +1,6 @@
 package resource;
 
-import Configuration.AppConfig;
+import configuration.AppConfig;
 import com.google.gson.Gson;
 import entity.Offer;
 import org.slf4j.Logger;

@@ -12,6 +12,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
@@ -350,57 +351,6 @@ public class OfferService {
     }
 
 
-    public List getAddress(String query) {
-
-        List <String> termList = new LinkedList<>();
-
-        String terms[] = query.split(" ");
-        boolean after_street = false;
-        SearchRequestBuilder req;
-        SearchResponse response;
-
-        for (String term: terms) {
-            // определить является ли терм названием нас. пункта, улицы, номером дома
-            // if term in keyList
-            if (keywordList.contains(term.toLowerCase()) == true) {
-                termList.add(term);
-            }
-
-            req = elasticClient.prepareSearch("rplus-dict")
-                    .setTypes("cities")
-                    .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
-            req.setQuery(QueryBuilders.fuzzyQuery ("name", term.toLowerCase()));
-            response = req.execute().actionGet();
-            if (response.getHits().getTotalHits() > 0) {
-                termList.add(term);
-                continue;
-            }
-
-            req = elasticClient.prepareSearch("rplus-dict")
-                    .setTypes("streets")
-                    .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
-            // если нашил город добавить условие
-            req.setQuery(QueryBuilders.fuzzyQuery ("name", term.toLowerCase()));
-            response = req.execute().actionGet();
-            if (response.getHits().getTotalHits() > 0) {
-                termList.add(term);
-                after_street = true;
-                continue;
-            }
-
-            if (after_street) {
-                if (regExTest("\\d+", term)) {
-                    termList.add(term);
-                    after_street = false;
-                }
-            }
-            // if term in houselist
-            //termMap.put("house", term);
-        }
-
-        return termList;
-    }
-
     public List<Offer> list(int page, int perPage, Map<String, Integer> filter, String searchQuery) {
         List<Offer> offerList = new LinkedList<>();
 
@@ -408,10 +358,6 @@ public class OfferService {
 
         List<FilterObject> filters = parseQuery(searchQuery);
         logger.info(gson.toJson(filters));
-
-        List addressParts = getAddress(searchQuery);
-        logger.info("adr parts");
-        logger.info(gson.toJson(addressParts));
 
         SearchRequestBuilder req = elasticClient.prepareSearch("rplus-index")
                 .setTypes("offers")
@@ -456,13 +402,17 @@ public class OfferService {
             }
         }
 
-        if (addressParts.size() > 0) {
-            req.setQuery(QueryBuilders.matchQuery("address", String.join(" ", addressParts)));
-        }
 
         if (searchQuery.length() > 0) {
-            //req.setQuery(QueryBuilders.matchPhraseQuery("source_media_text", searchQuery));
-            //req.setQuery(QueryBuilders.)
+
+            BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+            q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
+            q.should(QueryBuilders.matchQuery("titleTags", searchQuery).boost(4));
+            q.should(QueryBuilders.matchQuery("addressTags", searchQuery).boost(2));
+            q.should(QueryBuilders.matchQuery("descriptionTags", searchQuery));
+
+            req.setQuery(q);
         }
 
         SearchResponse response = req.execute().actionGet();

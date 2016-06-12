@@ -22,8 +22,16 @@ public class Offer {
     public String type_code;
     public String offer_type_code;
 
+
+    public String locality;
     public String address;
-    //house_num ap_num
+    public String house_num;
+    public String ap_num;
+
+    public String district;
+
+
+
     public String house_type;
 
     public String ap_scheme;         // планировка
@@ -62,11 +70,9 @@ public class Offer {
     public String work_info;
 
 
-    //latitude
-    //longitude
+    //public String[] pois;
+    //public String poi;
 
-
-    public String landmark;
 
     public String owner_id;
     public String agent_id;
@@ -79,9 +85,12 @@ public class Offer {
     public GeoLocation location;
     public String photo_thumbnail;
     //attachments
-    public String[] tags;
-    public String[] descriptionTags;
-    public String[] mediaTextTags;
+
+    public String titleTags;
+    public String addressTags;
+    public String descriptionTags;
+
+    public String allTags;
     //account_id
     //hidden_for
 
@@ -91,20 +100,23 @@ public class Offer {
         Logger logger = LoggerFactory.getLogger(Offer.class);
     }
 
+    String strNN(String s) {
+        if (s != null) return s;
+        return "";
+    }
+
     public void GenerateTags() {
 
-        tags = new String[] {};
-        descriptionTags = new String[] {};
-        mediaTextTags = new String[] {};
-        String delimiters = " ";
+        titleTags = "";
+        addressTags = "";
+        descriptionTags = "";
+        allTags = "";
 
-        if (description != null) {
-            descriptionTags = description.split(delimiters);
-        }
+        titleTags = type_code;
+        addressTags = strNN(locality) + ' ' + strNN(address) + ' ' + strNN(house_num);
+        descriptionTags = strNN(description) + ' ' + strNN(source_media_text);
 
-        if (source_media_text != null) {
-            mediaTextTags = source_media_text.split(delimiters);
-        }
+        allTags = strNN(titleTags) + ' ' + strNN(addressTags) + ' ' + strNN(descriptionTags);
     }
 
 }

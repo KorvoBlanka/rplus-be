@@ -1,13 +1,10 @@
 package resource;
 
-import Configuration.AppConfig;
+import configuration.AppConfig;
 import com.google.gson.Gson;
-import entity.Person;
 import entity.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import service.OrganisationService;
-import service.PersonService;
 import service.RequestService;
 import utils.JsonTransformer;
 

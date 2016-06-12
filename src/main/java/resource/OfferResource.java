@@ -1,6 +1,6 @@
 package resource;
 
-import Configuration.AppConfig;
+import configuration.AppConfig;
 import entity.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

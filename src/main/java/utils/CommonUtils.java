@@ -1,16 +1,12 @@
 package utils;
 
-import Configuration.AppConfig;
+import configuration.AppConfig;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.time.Instant;

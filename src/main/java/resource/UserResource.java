@@ -3,7 +3,7 @@ package resource; /**
  */
 
 
-import Configuration.AppConfig;
+import configuration.AppConfig;
 import com.google.gson.Gson;
 import entity.User;
 import org.slf4j.Logger;
