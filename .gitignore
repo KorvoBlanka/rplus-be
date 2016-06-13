@@ -6,6 +6,7 @@ elastic/data/
 app_config
 scripts/history
 scripts/lock
+target/
 
 # User-specific stuff:
 .idea/workspace.xml
