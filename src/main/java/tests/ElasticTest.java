@@ -14,7 +14,6 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 /**
  * Created by owl on 3/27/16.
@@ -24,7 +23,11 @@ public class ElasticTest {
 
     public static void test1() {
 
-        Settings settings = Settings.settingsBuilder().put("path.home", "./elastic/").build();
+        /*
+
+        Settings settings = Settings.builder().put("path.home", "./elastic/").build();
+
+        NodeB
 
         Node node = nodeBuilder().settings(settings).node();
         Client client = node.client();
@@ -55,6 +58,6 @@ public class ElasticTest {
         }
 
 
-
+        */
     }
 }

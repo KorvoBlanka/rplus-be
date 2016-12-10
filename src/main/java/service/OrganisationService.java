@@ -2,107 +2,96 @@ package service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import entity.Organisation;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Created by owl on 5/3/16.
- */
+import hibernate.entity.Organisation;
+
+
 public class OrganisationService {
+
     Logger logger = LoggerFactory.getLogger(OrganisationService.class);
+    EntityManagerFactory emf;
 
-    private final Client elasticClient;
-    private final String E_INDEX = "rplus-index";
-    private final String E_TYPE = "organisations";
 
-    Gson gson = new GsonBuilder().create();
+    public OrganisationService (EntityManagerFactory emf) {
 
-    public OrganisationService(Client elasticClient) {
-        this.elasticClient = elasticClient;
+        this.emf = emf;
     }
 
-    public List<Organisation> list(int page, int perPage, String searchQuery) {
+    public List<String> check (Organisation org) {
+        List<String> errors = new LinkedList<>();
+
+        if (org.getName() == null || org.getName().length() < 2) errors.add("name is null or too short");
+
+        return errors;
+    }
+
+    public List<Organisation> list (int page, int perPage, String searchQuery) {
+
         this.logger.info("list");
 
-        List<Organisation> orgList = new LinkedList<>();
+        List<Organisation> orgList;
 
-        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
-                .setTypes(E_TYPE)
-                .setSearchType(SearchType.DEFAULT)
-                .setFrom(page * perPage).setSize(perPage);
+        EntityManager em = emf.createEntityManager();
 
-        if (searchQuery.length() > 0) {
-            req.setQuery(QueryBuilders.prefixQuery("_all", searchQuery));
-        }
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Organisation> cq = cb.createQuery(Organisation.class);
+        Root<Organisation> organiasationRoot = cq.from(Organisation.class);
+        cq.select(organiasationRoot);
 
-        SearchResponse response = req.execute().actionGet();
 
-        for (SearchHit sh: response.getHits()) {
-            Organisation org = gson.fromJson(sh.getSourceAsString(), Organisation.class);
-            org.id = sh.getId();
-            orgList.add(org);
-        }
+        orgList = em.createQuery(cq).getResultList();
+
+
+        em.close();
 
         return orgList;
     }
 
-    public Organisation get(String id) {
+    public Organisation get (long id) {
+
         this.logger.info("get");
 
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        Organisation org = gson.fromJson(response.getSourceAsString(), Organisation.class);
-        org.id = response.getId();
+        EntityManager em = emf.createEntityManager();
 
-        return org;
+        Organisation result = em.find(Organisation.class, id);
+
+        em.close();
+
+        return result;
     }
 
-    public Organisation update(String id, String body) throws Exception {
-        this.logger.info("update");
+    public Organisation save (Organisation organisation) throws Exception {
 
-        Organisation tOrg = gson.fromJson(body, Organisation.class);
-        tOrg.change_date = System.currentTimeMillis() / 1000L;
-
-        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
-        UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
-
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        Organisation org = gson.fromJson(response.getSourceAsString(), Organisation.class);
-        org.id = response.getId();
-
-        return org;
-    }
-
-    public Organisation create(String body) throws Exception {
         this.logger.info("create");
 
-        Organisation tOrg = gson.fromJson(body, Organisation.class);
-        tOrg.add_date = System.currentTimeMillis() / 1000L;
-        tOrg.change_date = System.currentTimeMillis() / 1000L;
 
-        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOrg)).execute().actionGet();
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
-        Organisation org = gson.fromJson(response.getSourceAsString(), Organisation.class);
-        org.id = response.getId();
+        EntityManager em = emf.createEntityManager();
 
-        return org;
+        Organisation result;
+
+        em.getTransaction().begin();
+        result = em.merge(organisation);
+        em.getTransaction().commit();
+
+
+        em.close();
+
+        return result;
     }
 
-    public Organisation delete(String id) {
+    public Organisation delete (long id) {
         throw new NotImplementedException();
     }
 }

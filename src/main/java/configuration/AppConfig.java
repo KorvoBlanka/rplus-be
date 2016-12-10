@@ -11,6 +11,7 @@ import java.util.Map;
  * Created by owl on 3/27/16.
  */
 public class AppConfig {
+
     public static String API_CONTEXT = "/api/v1";
     public static String SERVICE_CONTEXT = "/service/v1";
 
@@ -22,6 +23,7 @@ public class AppConfig {
     public static String PHOTO_STORAGE_URL = "http://localhost:4567/photo_storage/";
 
     public static void LoadConfig() throws IOException {
+
         String json_str = new String(Files.readAllBytes(Paths.get("app_config")));
         Map<String, String> conf_map = CommonUtils.JsonToMap(json_str);
 
@@ -31,5 +33,7 @@ public class AppConfig {
         AppConfig.FILE_STORAGE_URL = conf_map.get("FILE_STORAGE_URL");
         AppConfig.PHOTO_STORAGE_PATH = AppConfig.STATIC_FILE_LOCATION + conf_map.get("PHOTO_STORAGE_PATH");
         AppConfig.PHOTO_STORAGE_URL = conf_map.get("PHOTO_STORAGE_URL");
+
     }
+
 }

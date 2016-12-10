@@ -1,129 +1,119 @@
-package service; /**
- * Created by owl on 3/23/16.
- */
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import entity.User;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
+package service;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 
+import hibernate.entity.User;
+
+
 
 public class UserService {
+
     Logger logger = LoggerFactory.getLogger(UserService.class);
+    EntityManagerFactory emf;
 
-    private final Client elasticClient;
-    private final String E_INDEX = "rplus-index";
-    private final String E_TYPE = "users";
+    public UserService (EntityManagerFactory emf) {
 
-    Gson gson = new GsonBuilder().create();
-
-    public UserService(Client elasticClient) {
-        this.elasticClient = elasticClient;
+        this.emf = emf;
     }
 
-    public List<User> list(String role, String searchQuery) {
+    public List<String> check (User user) {
+        // check login, pass, role
+        List<String> errors = new LinkedList<>();
+
+        if (user.getLogin() == null || user.getLogin().length() < 4) errors.add("login is null or too short");
+        if (user.getPassword() == null || user.getPassword().length() < 4) errors.add("password is null or too short");
+        if (user.getRole() == null) {
+            errors.add("unknown role ");
+        }
+
+        return errors;
+    }
+
+    public List<User> list (User.Role role, Integer superiorId, String searchQuery) {
+
         this.logger.info("list");
 
-        List<User> userList = new LinkedList<>();
+        List<User> userList;
 
-        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
-                .setTypes(E_TYPE)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+        EntityManager em = emf.createEntityManager();
 
-        if (role.length() > 0) {
-            req.setQuery(QueryBuilders.matchQuery("role", role));
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<User> cq = cb.createQuery(User.class);
+        Root<User> userRoot = cq.from(User.class);
+        cq.select(userRoot);
+
+        if (role != null) {
+            cq.where(cb.equal(userRoot.get("role"), role));
         }
 
-        if (searchQuery.length() > 0) {
-            req.setQuery(QueryBuilders.prefixQuery("_all", searchQuery));
+        if (superiorId != null) {
+            cq.where(cb.equal(userRoot.get("superiorId"), superiorId));
         }
 
-        SearchResponse response = req.execute().actionGet();
+        userList = em.createQuery(cq).getResultList();
 
-        for (SearchHit sh: response.getHits()) {
-            User u = gson.fromJson(sh.getSourceAsString(), User.class);
-            u.id = sh.getId();
-            userList.add(u);
-        }
+        em.close();
 
         return userList;
     }
 
-    public User get(String id) {
+    public User get (long id) {
+
         this.logger.info("get");
 
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        User user = gson.fromJson(response.getSourceAsString(), User.class);
-        user.id = response.getId();
+        EntityManager em = emf.createEntityManager();
 
-        return user;
+        User result = em.find(User.class, id);
+
+        em.close();
+
+        return result;
     }
 
-    public User getByName(String name) {
-        this.logger.info("get by name");
-        this.logger.info(name);
+    public User getByLogin (String login) {
 
-        User user = null;
+        this.logger.info("get");
 
-        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
-                .setTypes(E_TYPE)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.termQuery("name", name));
+        EntityManager em = emf.createEntityManager();
 
-        SearchResponse response = req.execute().actionGet();
+        User result = null;
 
-        if (response.getHits().getTotalHits() > 0) {
-            user = gson.fromJson(response.getHits().getAt(0).getSourceAsString(), User.class);
-        }
+        result = em.createQuery("FROM User WHERE login = :login", User.class).setParameter("login", login).getSingleResult();
 
-        return user;
+        em.close();
+
+        return result;
     }
 
-    public User update(String id, String body) throws Exception {
-        this.logger.info("update");
+    public User save (User user) throws Exception {
 
-        User tUser = gson.fromJson(body, User.class);
-        tUser.change_date = System.currentTimeMillis() / 1000L;
+        this.logger.info("save");
 
-        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tUser));
-        UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
+        EntityManager em = emf.createEntityManager();
 
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        User user = gson.fromJson(response.getSourceAsString(), User.class);
-        user.id = response.getId();
+        User result;
 
-        return user;
+        em.getTransaction().begin();
+        result = em.merge(user);
+        em.getTransaction().commit();
+
+        em.close();
+
+        return result;
     }
 
-    public User create(String body) throws Exception {
-        this.logger.info("create");
-
-        User tUser = gson.fromJson(body, User.class);
-        tUser.add_date = System.currentTimeMillis() / 1000L;
-        tUser.change_date = System.currentTimeMillis() / 1000L;
-
-        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tUser)).execute().actionGet();
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
-        User user = gson.fromJson(response.getSourceAsString(), User.class);
-        user.id = response.getId();
-
-        return user;
-    }
-
-    public User delete(String id) {
+    public User delete (long id) {
         throw new NotImplementedException();
     }
 }

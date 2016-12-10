@@ -1,15 +1,7 @@
-package resource; /**
+package resource;
+/**
  * Created by owl on 3/23/16.
  */
-
-
-import configuration.AppConfig;
-import com.google.gson.Gson;
-import entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import service.UserService;
-import utils.JsonTransformer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,81 +11,120 @@ import static spark.Spark.get;
 import static spark.Spark.post;
 import static spark.Spark.put;
 
+import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import configuration.AppConfig;
+import service.UserService;
+import hibernate.entity.User;
+
+
 public class UserResource {
+
     Logger logger = LoggerFactory.getLogger(UserService.class);
+    Gson gson = new Gson();
 
     private final UserService userService;
 
-    Gson gson = new Gson();
 
     public UserResource(UserService userService) {
+
         this.userService = userService;
         setupEndpoints();
     }
 
     private void setupEndpoints() {
 
-        post(AppConfig.API_CONTEXT + "/user/create", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            User user = userService.create(request.body());
-
-            result.put("response", "ok");
-            result.put("result", user);
-            response.status(201);
-
-            return result;
-        }, new JsonTransformer());
-
-
-        post(AppConfig.API_CONTEXT + "/user/update/:id", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            User user = userService.update(request.params(":id"), request.body());
-
-            result.put("response", "ok");
-            result.put("result", user);
-            response.status(202);
-
-            return result;
-        }, new JsonTransformer());
-
-
-        post(AppConfig.API_CONTEXT + "/user/delete/:id", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            User user = userService.delete(request.params(":id"));
-
-            result.put("response", "ok");
-            result.put("result", user);
-
-            return result;
-        }, new JsonTransformer());
-
-
-        get(AppConfig.API_CONTEXT + "/user/get/:id", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            User user = userService.get(request.params(":id"));
-
-            result.put("response", "ok");
-            result.put("result", user);
-
-            return result;
-        }, new JsonTransformer());
-
-
         get(AppConfig.API_CONTEXT + "/user/list", "application/json", (request, response) -> {
+
             Map<String, Object> result = new HashMap<>();
 
-            String role = "";
-            if (request.queryParams("role") != null) {
-                role = request.queryParams("role");
+            String searchQuery = request.queryParams("searchQuery");
+            User.Role role = null;
+            Integer superiorId = null;
+
+
+            String roleStr = request.queryParams("role");
+            if (roleStr != null && User.Role.contains(roleStr)) {
+                role = User.Role.valueOf(roleStr);
             }
 
-            List<User> userList = userService.list(role, "");
+            String superiorIdStr = request.queryParams("superiorId");
+            if (superiorIdStr != null && StringUtils.isNumeric(superiorIdStr)) {
+                superiorId = Integer.parseInt(request.queryParams("superiorId"));
+            }
+
+            List<User> userList = userService.list(role, superiorId, searchQuery);
 
             result.put("response", "ok");
             result.put("result", userList);
 
             return result;
-        }, new JsonTransformer());
+        }, gson::toJson);
+
+        get(AppConfig.API_CONTEXT + "/user/get/:id", "application/json", (request, response) -> {
+
+            Map<String, Object> result = new HashMap<>();
+
+            String userIdStr = request.params(":id");
+            if (userIdStr != null && StringUtils.isNumeric(userIdStr)) {
+                long id = Long.parseLong(userIdStr);
+                User user = userService.get(id);
+
+                result.put("response", "ok");
+                result.put("result", user);
+            } else {
+                result.put("response", "fail");
+                result.put("result", "id is not numeric");
+            }
+
+            return result;
+        }, gson::toJson);
+
+        post(AppConfig.API_CONTEXT + "/user/save", "application/json", (request, response) -> {
+
+            Map<String, Object> result = new HashMap<>();
+
+            User user = gson.fromJson(request.body(), User.class);
+            // check user
+            List<String> errors = userService.check(user);
+            if (errors.size() == 0) {
+                User res = userService.save(user);
+
+                result.put("response", "ok");
+                result.put("result", res);
+                response.status(202);
+            } else {
+                result.put("response", "fail");
+                result.put("result", errors);
+                // should be 400, but its problematic to process it later so fck it
+                response.status(200);
+            }
+
+            return result;
+        }, gson::toJson);
+
+        post(AppConfig.API_CONTEXT + "/user/delete/:id", "application/json", (request, response) -> {
+
+            Map<String, Object> result = new HashMap<>();
+
+            String userIdStr = request.params(":id");
+            if (userIdStr != null && StringUtils.isNumeric(userIdStr)) {
+                long id = Integer.parseInt(userIdStr);
+                User user = userService.delete(id);
+
+                result.put("response", "ok");
+                result.put("result", user);
+            } else {
+                result.put("response", "fail");
+                result.put("result", "id is not numeric");
+            }
+
+            return result;
+        }, gson::toJson);
 
     }
+
 }

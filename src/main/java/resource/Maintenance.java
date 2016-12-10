@@ -1,58 +1,89 @@
 package resource;
-
-import configuration.AppConfig;
-import com.google.gson.Gson;
-import entity.Offer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import service.OfferService;
-import service.PhotoService;
-import utils.CommonUtils;
-import utils.JsonTransformer;
+/**
+ * Created by owl on 4/5/16.
+ */
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static spark.Spark.post;
 
-/**
- * Created by owl on 4/5/16.
- */
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import configuration.AppConfig;
+import service.PersonService;
+import service.UserService;
+import service.OfferService;
+
+import utils.CommonUtils;
+
+import hibernate.entity.Person;
+import hibernate.entity.User;
+import hibernate.entity.Offer;
+
+
 public class Maintenance {
 
     Logger logger = LoggerFactory.getLogger(Maintenance.class);
-
-    private final OfferService offerService;
-    private final PhotoService photoService;
-
     Gson gson = new Gson();
 
-    public Maintenance(OfferService offerService, PhotoService photoService) {
+    private final OfferService offerService;
+    private final UserService userService;
+    private final PersonService personService;
+
+
+    public Maintenance(OfferService offerService, UserService userService, PersonService personService) {
+
         this.offerService = offerService;
-        this.photoService = photoService;
+        this.userService = userService;
+        this.personService = personService;
         setupEndpoints();
+
     }
 
     private void setupEndpoints() {
 
         post(AppConfig.SERVICE_CONTEXT + "/offer/put", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
-            Offer offer = offerService.create(request.body());
+
+            Offer offer = gson.fromJson(request.body(), Offer.class);
+            Offer res = offerService.save(offer);
 
             result.put("response", "ok");
-            result.put("result", offer);
-            response.status(201);
+            result.put("result", res);
+            response.status(202);
 
             return result;
-        }, new JsonTransformer());
+        }, gson::toJson);
 
-        post(AppConfig.SERVICE_CONTEXT + "/photo/put/:id", "application/json", (request, response) -> {
+        post(AppConfig.SERVICE_CONTEXT + "/person/put", "application/json", (request, response) -> {
+            Map<String, Object> result = new HashMap<>();
 
-            Map<String, String> photo = CommonUtils.JsonToMap(request.body());
-            photoService.put(request.params(":id"), photo.get("url"));
-            response.status(201);
-            return null;
-        }, new JsonTransformer());
+            Person person = gson.fromJson(request.body(), Person.class);
+            Person r = personService.save(person);
+
+            result.put("response", "ok");
+            result.put("result", r);
+            response.status(202);
+
+            return result;
+        }, gson::toJson);
+
+        post(AppConfig.SERVICE_CONTEXT + "/user/put", "application/json", (request, response) -> {
+            Map<String, Object> result = new HashMap<>();
+
+            User user = gson.fromJson(request.body(), User.class);
+            User r = userService.save(user);
+
+            result.put("response", "ok");
+            result.put("result", r);
+            response.status(202);
+
+            return result;
+        }, gson::toJson);
+
     }
 
 }

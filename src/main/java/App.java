@@ -3,26 +3,31 @@
  */
 
 import configuration.AppConfig;
-import com.mongodb.*;
-import org.elasticsearch.client.Client;
+
+import hibernate.entity.Organisation;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.mapping.MapperOptions;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import resource.*;
 import service.*;
 import spark.Spark;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import static spark.Spark.exception;
 
 
 public class App {
     static Logger logger = LoggerFactory.getLogger(App.class);
 
-    static ElasticService elasticService;
+    static TransportClient ec;
 
     static UserService userService;
     static OrganisationService orgService;
@@ -30,68 +35,51 @@ public class App {
     static OfferService offerService;
     static RequestService requestService;
 
-    static PhotoService photoService;
 
     public static void main(String[] args) throws Exception {
 
         AppConfig.LoadConfig();
-        Spark.externalStaticFileLocation(AppConfig.STATIC_FILE_LOCATION);
+        //Spark.externalStaticFileLocation(AppConfig.STATIC_FILE_LOCATION);
 
-
-        Client ec = getElasticClient();
-        App.elasticService = new ElasticService(ec);
-
-        Datastore ds = getDatastore();
+        ec = getElasticClient();
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("rplus-be-dev.jpa.hibernate");
 
         // services
-        App.userService = new UserService(ec);
-        App.orgService = new OrganisationService(ec);
-        App.personService = new PersonService(ec);
-        App.offerService = new OfferService(ec);
-        App.requestService = new RequestService(ec);
+        App.userService = new UserService(emf);
+        App.orgService = new OrganisationService(emf);
+        App.personService = new PersonService(emf);
+        App.offerService = new OfferService(emf, ec);
+        App.requestService = new RequestService(emf, ec);
 
-        App.photoService = new PhotoService(ds);
 
         // resources
         new Authorisation();
-        new Maintenance(App.offerService, App.photoService);
+        new Maintenance(App.offerService, App.userService, App.personService);
         new UserResource(App.userService);
         new OrganisationResource(App.orgService);
         new PersonResource(App.personService);
         new OfferResource(App.offerService);
         new RequestResource(App.requestService);
 
-        new PhotoResource(App.photoService);
+        //new PhotoResource(App.photoService);
         //new PersonResource(App.person_service);
         //new RealtyResource(App.realty_service);
         //new RequestResource(App.request_service);
+
+        exception(Exception.class, (exception, request, response) -> {
+            response.status(500);
+            response.body("Ex:" + exception.getMessage());
+            exception.printStackTrace();
+        });
     }
 
-    private static Client getElasticClient() {
-        Settings settings = Settings.settingsBuilder().put("path.home", "./elastic/").build();
+    private static TransportClient getElasticClient() throws UnknownHostException {
 
-        Node node = nodeBuilder().settings(settings).node();
-        Client client = node.client();
-
-        client.admin().cluster().prepareHealth().setWaitForYellowStatus().execute().actionGet(5000);
+        Settings settings = Settings.builder().put("cluster.name", "rplus-dev").build();
+        TransportClient client = new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
 
         return client;
-    }
 
-    private static Datastore getDatastore() throws Exception {
-        MongoClient mongoClient = new MongoClient("localhost");
-
-        Morphia morphia = new Morphia();
-
-        MapperOptions options = new MapperOptions();
-        options.setStoreEmpties(true);
-        options.setStoreNulls(true);
-        morphia.getMapper().setOptions(options);
-
-        Datastore ds = morphia.createDatastore(mongoClient, "rplus-dev");
-
-
-        return ds;
     }
 
 }

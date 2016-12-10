@@ -1,4 +1,7 @@
 package utils;
+/**
+ * Created by owl on 3/26/16.
+ */
 
 import configuration.AppConfig;
 import com.google.gson.Gson;
@@ -12,9 +15,7 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Created by owl on 3/26/16.
- */
+
 public class CommonUtils {
 
     public static Map<String, String> JsonToMap(String json) {
@@ -22,6 +23,10 @@ public class CommonUtils {
         Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
         Map<String, String> map = gson.fromJson(json, stringStringMap);
         return map;
+    }
+
+    public static long getUnixTimestamp() {
+        return System.currentTimeMillis() / 1000L;
     }
 
     public static String downloadPhoto(String photoUrl) throws Exception {

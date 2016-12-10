@@ -1,267 +1,130 @@
 
-session
-
-user   // пользователь системы
-
-company
-
-
-person //
-
-
-request
-
-
-offer
-
-
-service
 
 
 
+OffertOffer=gson.fromJson(body,Offer.class);
+tOffer.GenerateTags();
+tOffer.add_date=System.currentTimeMillis()/1000L;
+tOffer.change_date=System.currentTimeMillis()/1000L;
 
-Классы
-class Raster;
-class ImageSprite;
+IndexResponseidxResponse=elasticClient.prepareIndex("rplus-index","offers").setSource(gson.toJson(tOffer)).execute().actionGet();
 
-Интерфейсы
-interface RasterDelegate;
-interface Storing;
+this.logger.info("idx_resp:"+idxResponse.status().name());
 
-Переменные
-int i;
-char c;
-float myWidth;
-
-Методы
-run();
-runFast();
-getBackground();
-
-Константы
-static final int MAX_WIDTH = 999;
-static final int GET_THE_CPU = 1;
-
-Пакеты	Имя пакета пишется только строчными буквами. Префикс уникального имени пакета должен быть одним из имен верхнего доменного уровня: ru, su, com, org, net, edu, gov и т.п. как указано в стандарте ISO 3166, 1981. Последующие компоненты имени пакета варьируются в зависимости от собственной внутренней организации домена.
+GetResponseresponse=elasticClient.prepareGet("rplus-index","offers",idxResponse.getId()).get();
+Offeroffer=gson.fromJson(response.getSourceAsString(),Offer.class);
+offer.id=response.getId();
 
 
 
 
 
-    public void ParseQuery(String query) {
+        SearchRequestBuilder req = elasticClient.prepareSearch("rplus-index")
+                .setTypes("offers")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
 
-        Map<String, String> termFilters;
-        Map<String, Map<String, Integer>> rangeFilters;
 
-
-        // Some commonly used regexes
-        String sta_re = "(?:^|\\s+|,\\s*)";
-        String end_re = "(?:\\s+|,|$)";
-        String tofrom_re = "(?:от|до|с|со|по)";
-
-        {
-            boolean matched;
-            Integer exactPrice = null;
-            Integer price1 = null;
-            Integer price2 = null;
-
-            Pattern p;
-            Matcher m;
-
-            do {
-                matched = false;
-
-                String float_re = "\\d+(?:[,.]\\d+)?";
-                String rub_re = "р(?:\\.|(?:уб(?:\\.|лей)?)?)?";
-                String ths_re = "т(?:\\.|(ыс(?:\\.|яч)?)?)?";
-                String mln_re = "(?:(?:млн\\.?)|(?:миллион\\w*))";
-
-                // Range
-
-                p = Pattern.compile(
-                        "s/" + sta_re + "(?:(?:от|с)\\s+)?(" + float_re + ")\\s*(?:до|по|\\-)\\s*(" + float_re + ")\\s*((?:" + rub_re + ")|(?:" + ths_re + "}\\s*" + rub_re + ")|(?:" + mln_re + "\\s*(?:" + rub_re + ")?))" + end_re + "/ /i");
-                m = p.matcher(query);
-                if (m.find()) {
-                    String ss = m.group(3);
-                    price1 = Integer.parseInt(m.group(1));
-                    price2 = Integer.parseInt(m.group(2));
-
-                    if (RegExTest("^" + rub_re + "$", ss)) {
-                        price1 = price1 / 1000;
-                        price2 = price2 / 1000;
-                    } else if (RegExTest("^" + mln_re + "\\s*(?:" + rub_re + ")?$", ss)) {
-                        price1 = price1 * 1000;
-                        price2 = price2 * 1000;
-                    } else {
-
-                    }
+        for (FilterObject fo: filters) {
+            if (fo.exactVal != null) {
+                req.setPostFilter(
+                        QueryBuilders.termQuery(fo.fieldName, fo.exactVal));
+            } else {
+                if (fo.lowerVal != null) {
+                    req.setPostFilter(
+                            QueryBuilders.rangeQuery(fo.fieldName).gte(fo.lowerVal));
                 }
-                // Single value
-                else {
-                    p = Pattern.compile("s/" + sta_re + "(?:(" + tofrom_re + ")\\s+)?(" + float_re + ")\\s*((?:" + rub_re + ")|(?:" + ths_re + "\\s*" + rub_re + "|(?:" + mln_re + "\\s*(?:" + rub_re + ")?))" + end_re + "/ /i");
-                    m = p.matcher(query);
-                    if (m.find()) {
-                        String prefix = m.group(1);
-                        String ss = m.group(3);
-                        Integer price = Integer.parseInt(m.group(2));
-
-                        if (RegExTest("^ " + rub_re + " $", ss)) {
-                            price = price / 1000;
-                        } else if (RegExTest("^ " + mln_re + "\\s * ( ?:" + rub_re + "?$", ss)) {
-                            price = price * 1000;
-                        } else {
-                            price = price;
-                        }
-                        if (prefix.matches("от") || prefix.matches("с")) {
-                            price1 = price;
-                        } else if (prefix.matches("до") || prefix.matches("по")) {
-                            price2 = price;
-                        } else {
-                            exactPrice = price;
-                        }
-                        matched = true;
-                    }
+                if (fo.upperVal != null) {
+                    req.setPostFilter(
+                            QueryBuilders.rangeQuery(fo.fieldName).lte(fo.upperVal));
                 }
-            } while (matched == true);
-
-            //$q = trim($q) if $matched;
-
-            if (price1 != null && price2 != null) {
-                Map<String, Integer> t = new HashMap<String, Integer>();
-                t.put("gte", price1);
-                t.put("lte", price2);
-                rangeFilters.put("price", t);
-            } else if (price1 != null) {
-                Map<String, Integer> t = new HashMap<String, Integer>();
-                t.put("gte", price1);
-                rangeFilters.put("price", t);
-            } else if (price2 != null) {
-                Map<String, Integer> t = new HashMap<String, Integer>();
-                t.put("lte", price2);
-                rangeFilters.put("price", t);
-            } else if (exactPrice != null) {
-                termFilters.put("price", exactPrice);
             }
         }
 
-        // Rooms count
-        {
-            boolean matched = false;
-            int rooms_count, rooms_count1, rooms_count2;
-            do {
-                matched = false;
-
-                // Range
-                if ($q =~ s/${sta_re}(\d)\s*\-\s*(\d)\s*к(?:\.|(?:омн(?:\.|ат\w*)?)?)?${end_re}/ /i) {
-                    ($rooms_count1, $rooms_count2) = ($1, $2);
-                }
-                // Single value: N комн.
-                else if ($q =~ s/${sta_re}(\d)(?:\-?х\s)?\s*к(?:\.|(?:омн(?:\.|ат\w*)?)?)?${end_re}/ /i) {
-                    $rooms_count = $1;
-                    $matched = 1;
-                }
-                // Single value: [одно|двух|...]комнатная
-                else if ($q =~ s/${sta_re}(одн[оа]|двух|трех|четырех|пяти|шести|семи|восьми|девяти)\s*комн(?:\.|(?:ат\w*)?)?${end_re}/ /i) {
-                    $rooms_count = 1 if $1 eq 'одно' || $1 eq 'одна';
-                    $rooms_count = 2 if $1 eq 'двух';
-                    $rooms_count = 3 if $1 eq 'трех';
-                    $rooms_count = 4 if $1 eq 'четырех';
-                    $rooms_count = 5 if $1 eq 'пяти';
-                    $rooms_count = 6 if $1 eq 'шести';
-                    $rooms_count = 7 if $1 eq 'семи';
-                    $rooms_count = 8 if $1 eq 'восьми';
-                    $rooms_count = 9 if $1 eq 'девяти';
-                    $matched = 1;
-                }
-            } while ($matched);
-
-            //$q = trim($q) if $matched;
-
-            if ($rooms_count1 && $rooms_count2) {
-                push @filters, {range => {rooms_count => {gte => $rooms_count1, lte => $rooms_count2,}}};
-            } elsif ($rooms_count) {
-            push @filters, {term => {rooms_count => $rooms_count}};
-        }
+        if (filter != null) {
+            if (filter.get("state") != null) {
+                req.setPostFilter(
+                    QueryBuilders.termQuery("state_code", filter.get("state"))
+                );
+            }
+            if (filter.get("agent") != null) {
+                //req.setPostFilter(
+                //    QueryBuilders.termQuery("agent", filter.get("agent"));
+                //)
+            }
+            if (filter.get("tag") != null) {
+                //QueryBuilders.termQuery("tag", filter.get("tag"));
+            }
+            if (filter.get("depth") != null) {
+                // calc date
+                // filter.get("depth")
+                //QueryBuilders.rangeQuery("last_seen_date").from(from_date);
+            }
         }
 
-        // Floor
-        {
-            my ($matched, $exact_floor, $floor1, $floor2);
-            do {
-                $matched = 0;
 
-                my $flr_re = qr/э(?:\.|(?:т(?:\.|аж\w*)?)?)?/;
+        if (searchQuery.length() > 0) {
 
-                # Range
-                if ($q =~ s/${sta_re}(?:(?:от|с|со)\s+)?(\d{1,2})\s*(?:до|по|\-)\s*(\d{1,2})\s*${flr_re}${end_re}/ /i) {
-                    ($floor1, $floor2) = ($1, $2);
-                }
-                # Single value
-                elsif ($q =~ s/${sta_re}(?:(${tofrom_re})\s+)?(\d{1,2})\s*${flr_re}${end_re}/ /i) {
-                    my $prefix = $1 || '';
-                    if ($prefix eq 'до' || $prefix eq 'по') {
-                        $floor2 = $2;
-                    } elsif ($prefix eq 'от' || $prefix eq 'с') {
-                        $floor1 = $2;
-                    } else {
-                        $exact_floor = $2;
-                    }
-                    $matched = 1;
-                }
-            } while ($matched);
+            BoolQueryBuilder q = QueryBuilders.boolQuery();
 
-            $q = trim($q) if $matched;
+            q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
+            q.should(QueryBuilders.matchQuery("titleTags", searchQuery).boost(4));
+            q.should(QueryBuilders.matchQuery("addressTags", searchQuery).boost(2));
+            q.should(QueryBuilders.matchQuery("descriptionTags", searchQuery));
 
-            if ($floor1 && $floor2) {
-                push @filters, {range => {floor => {gte => $floor1, lte => $floor2,}}};
-            } elsif ($floor1) {
-            push @filters, {range => {floor => {gte => $floor1,}}};
-        } elsif ($floor2) {
-            push @filters, {range => {floor => {lte => $floor2,}}};
-        } elsif ($exact_floor) {
-            push @filters, {term => {floor => $exact_floor,}};
-        }
+            req.setQuery(q);
         }
 
-        // Square
-        {
-            my ($matched, $exact_square, $square1, $square2);
-            do {
-                $matched = 0;
+        SearchResponse response = req.execute().actionGet();
 
-                my $sqr_re = qr/(?:кв(?:\.|адратн\w*)?)?\s*м(?:\.|2|етр\w*)?/;
-
-                # Range
-                if ($q =~ s/${sta_re}(?:(?:от|с)\s+)?(\d+)\s*(?:до|по|\-)\s*(\d+)\s*${sqr_re}${end_re}/ /i) {
-                    ($square1, $square2) = ($1, $2);
-                }
-                # Single value
-                elsif ($q =~ s/${sta_re}(?:(${tofrom_re})\s+)?(\d+)\s*${sqr_re}${end_re}/ /i) {
-                    my $prefix = $1 || '';
-                    if ($prefix eq 'до' || $prefix eq 'по') {
-                        $square2 = $2;
-                    } elsif ($prefix eq 'от' || $prefix eq 'с') {
-                        $square1 = $2;
-                    } else {
-                        $exact_square = $2;
-                    };
-                    $matched = 1;
-                }
-            } while ($matched);
-
-            $q = trim($q) if $matched;
-
-            if ($square1 && $square2) {
-                push @filters, {range => {square_total => {gte => $square1, lte => $square2}}};
-            } elsif ($square1) {
-            push @filters, {range => {square_total => {gte => $square1}}};
-        } elsif ($square2) {
-            push @filters, {range => {square_total => {lte => $square2}}};
-        } elsif ($exact_square) {
-            push @filters, {term => {square_total => $exact_square}};
-        }
+        for (SearchHit sh: response.getHits()) {
+            Offer o = gson.fromJson(sh.getSourceAsString(), Offer.class);
+            o.id = sh.getId();
+            offerList.add(o);
         }
 
-        return {q => $q, filters => \@filters,};
-    }
 
+
+
+        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DEFAULT)
+                .setFrom(page * perPage).setSize(perPage);
+
+        if (personId.length() > 0) {
+            req.setQuery(QueryBuilders.matchQuery("person_id", personId));
+        }
+
+        if (searchQuery.length() > 0) {
+            req.setQuery(QueryBuilders.prefixQuery("_all", searchQuery));
+        }
+
+        SearchResponse response = req.execute().actionGet();
+
+        for (SearchHit sh: response.getHits()) {
+            Request request = gson.fromJson(sh.getSourceAsString(), Request.class);
+            request.id = sh.getId();
+
+            requestList.add(request);
+        }
+
+
+
+        	"id": 1,
+        	"typeCode": "apartment",
+        	"offerTypeCode": "sale",
+        	"locality": "Хабаровск",
+        	"address": "улица Такогото",
+        	"roomsCount": 2,
+        	"floor": 8,
+        	"floorsCount": 9,
+        	"squareTotal": 50,
+        	"ownerPrice": 3150,
+        	"sourceMedia": "avito",
+        	"sourceUrl": "https://www.avito.ru/habarovsk/kvartiry/2-k_kvartira_50_m_89_et._863863271",
+        	"addDate": 1478677834,
+        	"changeDate": 1478677834,
+        	"ownerPhones": [
+        	    "8 914 219-56-75",
+        	    "8 914 219-56-76"
+            ]

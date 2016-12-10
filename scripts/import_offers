@@ -1,0 +1,138 @@
+#!/usr/bin/env perl
+
+use FindBin;
+use lib "$FindBin::Bin";
+
+use List::MoreUtils qw(uniq);
+use DateTime;
+use DateTime::Format::Strptime;
+
+use JSON;
+
+use Mojo::UserAgent;
+
+use DateTime::Format::Strptime;
+
+use Data::Dumper;
+
+no warnings 'experimental';
+
+my $strp = DateTime::Format::Strptime->new(
+   pattern => '%FT%T%z'
+);
+
+my $ua = Mojo::UserAgent->new;
+my $ua_loc = Mojo::UserAgent->new;
+
+my $parser = DateTime::Format::Strptime->new( pattern => '%Y-%m-%d %H:%M' );
+
+
+print 'importing...' . "\n";
+
+{
+
+    my $url =  'import.rplusmgmt.com:19050' . '/api/result/get';
+    my $location_short = 'khv';
+
+    my $last_id = 0;
+    my $max_id = 0;
+
+    my $page = 0;
+    my $quit = 0;
+    while (!$quit) {
+        $page ++;
+
+        my $tx = $ua->get($url, form => {
+            location => $location_short,
+            page => $page ++,
+            first_id => $max_id,
+            last_id => $last_id
+        });
+
+        if (my $res = $tx->success) {
+
+            my $realty_data = $res->json->{list};
+            #$log->info('got answer ' . $res->json->{count} . ' obj in packet');
+            print 'got answer ' . $res->json->{count} . ' obj in packet' . "\n";
+            if ($res->json->{count} == 0) {$quit = 1;}
+
+            for my $data (@$realty_data) {
+
+                eval {
+                    my $object = from_json($data->{data});
+
+                    print 'processing obj ' . $data->{id} . "\n";
+                    #$log->info('processing obj ' . $data->{id});
+
+                    if ($data->{id} > $max_id) {
+                        $max_id = $data->{id};
+                    }
+
+                    #$object->{source_media_id} = $media_dict->{$object->{source_media}};
+                    #delete $object->{source_media};
+
+                    my @p_phones;
+                    foreach (@{$object->{owner_phones}}) {
+                        #my $pp = Rplus::Util::PhoneNum::parse($_);
+                        my $pp = $_;
+                        if ($pp) {
+                            push @p_phones, $pp;
+                        }
+                    }
+                    $object->{owner_phones} = \@p_phones;
+
+                    my $mediator_company = $object->{mediator_company};
+                    if ($mediator_company) {
+                        delete $object->{mediator_company};
+                    }
+
+                    if ($mediator_company) {
+                        foreach (@{$object->{'owner_phones'}}) {
+                            #add_mediator($mediator_company, $_);
+                            print $mediator_company;
+                        }
+                    }
+
+                    #print Dumper $object;
+
+                    my $dt = $strp->parse_datetime($object->{add_date});
+                    $object->{add_date} = $dt->epoch;
+
+                    my $conv_obj = {};
+                    while (my ($key, $value) = each %{$object}) {
+                        print $key, "\n";
+                        my $cc = toCamelCase($key);
+                        $conv_obj->{$cc} = $value;
+                    }
+
+                    print Dumper $conv_obj;
+
+                    #my $r_j = $ua->post('http://localhost:4567/service/v1/offer/put' => json => $object)->res->json;
+                    #print Dumper $r_j;
+
+                    sleep 1;
+
+                    #put_object($object, $config);
+                } or do {
+                    #$log->error($@);
+                    print $@;
+                }
+            }
+
+        } else {
+            #$log->error('unable to get answer from import server');
+            print 'unable to get answer from import server' . "\n";
+            exit;
+        }
+
+    }
+
+}
+
+sub toCamelCase {
+    my $str = shift;
+
+    $str =~ s/(?<=[^\W_])_+([^\W_])|([^\W_]+)|_+/\U$1\L$2/g;
+
+    return $str;
+}

@@ -1,7 +1,6 @@
-import entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import utils.JsonTransformer;
+/**
+ * Created by owl on 3/26/16.
+ */
 
 import java.util.Base64;
 import java.util.HashMap;
@@ -10,12 +9,18 @@ import static spark.Spark.before;
 import static spark.Spark.halt;
 import static spark.Spark.post;
 
-/**
- * Created by owl on 3/26/16.
- */
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import hibernate.entity.User;
+
+
 public class Authorisation {
+
     static Logger logger = LoggerFactory.getLogger(Authorisation.class);
-    static final boolean AUTH_CHECK_DISABLE = true;
+    Gson gson = new Gson();
+    static final boolean AUTH_CHECK_DISABLED = true;
 
     public Authorisation() {
         setupEndpoints();
@@ -24,7 +29,6 @@ public class Authorisation {
     private void setupEndpoints() {
 
         before((request, response) -> {
-            logger.info(request.uri());
 
             String origin = "*";
             String methods = "*";
@@ -33,16 +37,19 @@ public class Authorisation {
             response.header("Access-Control-Request-Method", methods);
             response.header("Access-Control-Allow-Headers", headers);
 
-            if (AUTH_CHECK_DISABLE) return;
-            if (request.uri().startsWith("/api")) {
-                if (request.session().attribute("auth") == null ||
-                        (boolean) request.session().attribute("auth") != true) {
-                    halt(401, "unauthorized");
-                }
+            if (AUTH_CHECK_DISABLED || !request.uri().startsWith("/api")) return;
+
+            logger.info(request.uri());
+
+            if (request.session().attribute("auth") == null ||
+                    (boolean) request.session().attribute("auth") != true) {
+                halt(401, "unauthorized");
             }
+
         });
 
         post("/session/login", (request, res) -> {
+
             HashMap<String, String> result = new HashMap<>();
 
             String authStr64 = request.body().split(" ")[1];
@@ -50,11 +57,12 @@ public class Authorisation {
             byte[] authBytes = dec.decode(authStr64);
             String authStr = new String(authBytes, "utf-8");
 
-            String name = authStr.split(":")[0];
-            String pass = authStr.split(":")[1];
+            String a[] = authStr.split(":");
+            String login = a[0];
+            String pass = a[1];
 
-            User user = App.userService.getByName(name);
-            if (user != null && user.name.matches(name) && user.password.matches(pass)) {
+            User user = App.userService.getByLogin(login);
+            if (user != null && user.getPassword().matches(pass)) {
                 request.session().attribute("auth", true);
                 result.put("result", "OK");
             } else {
@@ -62,14 +70,18 @@ public class Authorisation {
             }
 
             return result;
-        }, new JsonTransformer());
+
+        }, gson::toJson);
 
         post("/session/logout", (request, res) -> {
+
             HashMap<String, String> result = new HashMap<>();
             request.session().attribute("auth", false);
             result.put("result", "OK");
             return result;
-        }, new JsonTransformer());
+
+        }, gson::toJson);
 
     }
+
 }

@@ -1,11 +1,7 @@
 package resource;
-
-import configuration.AppConfig;
-import entity.Offer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import service.OfferService;
-import utils.JsonTransformer;
+/**
+ * Created by owl on 3/27/16.
+ */
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,14 +11,22 @@ import static spark.Spark.get;
 import static spark.Spark.post;
 import static spark.Spark.put;
 
-/**
- * Created by owl on 3/27/16.
- */
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import configuration.AppConfig;
+import service.OfferService;
+import hibernate.entity.Offer;
+
+
 public class OfferResource {
 
     Logger logger = LoggerFactory.getLogger(OfferResource.class);
+    Gson gson = new Gson();
 
     private final OfferService offerService;
+
 
     public OfferResource(OfferService offerService) {
         this.offerService = offerService;
@@ -31,50 +35,8 @@ public class OfferResource {
 
     private void setupEndpoints() {
 
-        post(AppConfig.API_CONTEXT + "/offer/create", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            Offer offer = offerService.create(request.body());
-
-            result.put("response", "ok");
-            result.put("result", offer);
-            response.status(201);
-
-            return result;
-        }, new JsonTransformer());
-
-        post(AppConfig.API_CONTEXT + "/offer/update/:id", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            Offer offer = offerService.update(request.params(":id"), request.body());
-
-            result.put("response", "ok");
-            result.put("result", offer);
-            response.status(202);
-
-            return result;
-        }, new JsonTransformer());
-
-        post(AppConfig.API_CONTEXT + "/offer/delete/:id", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            Offer offer = offerService.delete(request.params(":id"));
-
-            result.put("response", "ok");
-            result.put("result", offer);
-
-            return result;
-        }, new JsonTransformer());
-
-
-        get(AppConfig.API_CONTEXT + "/offer/get/:id", "application/json", (request, response) -> {
-            Map<String, Object> result = new HashMap<>();
-            Offer offer = offerService.get(request.params(":id"));
-
-            result.put("response", "ok");
-            result.put("result", offer);
-
-            return result;
-        }, new JsonTransformer());
-
         get(AppConfig.API_CONTEXT + "/offer/list", "application/json", (request, response) -> {
+
             Map<String, Object> result = new HashMap<>();
 
             int page = 0;
@@ -96,11 +58,47 @@ public class OfferResource {
 
             result.put("response", "ok");
             result.put("result", offerList);
-            /*for(Offer o: result) {
-                o.photo_thumbnail = "http://localhost:4567/photo_storage/" + o.photo_thumbnail;
-            }*/
+
             return result;
-        }, new JsonTransformer());
+        }, gson::toJson);
+
+        get(AppConfig.API_CONTEXT + "/offer/get/:id", "application/json", (request, response) -> {
+
+            Map<String, Object> result = new HashMap<>();
+            long id = Long.parseLong(request.params(":id"));
+            Offer offer = offerService.get(id);
+
+            result.put("response", "ok");
+            result.put("result", offer);
+
+            return result;
+        }, gson::toJson);
+
+        post(AppConfig.API_CONTEXT + "/offer/save", "application/json", (request, response) -> {
+            Map<String, Object> result = new HashMap<>();
+
+            Offer offer = gson.fromJson(request.body(), Offer.class);
+            Offer res = offerService.save(offer);
+
+            result.put("response", "ok");
+            result.put("result", res);
+            response.status(202);
+
+            return result;
+        }, gson::toJson);
+
+
+        post(AppConfig.API_CONTEXT + "/offer/delete/:id", "application/json", (request, response) -> {
+
+            Map<String, Object> result = new HashMap<>();
+            int id = Integer.parseInt(request.params(":id"));
+            Offer offer = offerService.delete(id);
+
+            result.put("response", "ok");
+            result.put("result", offer);
+
+            return result;
+        }, gson::toJson);
 
     }
 

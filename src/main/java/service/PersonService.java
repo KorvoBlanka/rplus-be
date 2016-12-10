@@ -1,19 +1,14 @@
 package service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import entity.Organisation;
-import entity.Person;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import hibernate.entity.Organisation;
+import hibernate.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -21,114 +16,88 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Created by owl on 5/3/16.
- */
+import hibernate.entity.Person;
+
+
+
 public class PersonService {
+
     Logger logger = LoggerFactory.getLogger(PersonService.class);
+    EntityManagerFactory emf;
 
-    private final Client elasticClient;
-    private final String E_INDEX = "rplus-index";
-    private final String E_TYPE = "persons";
 
-    Gson gson = new GsonBuilder().create();
+    public PersonService (EntityManagerFactory emf) {
 
-    public PersonService(Client elasticClient) {
-        this.elasticClient = elasticClient;
+        this.emf = emf;
     }
 
-    public List<Person> list(int page, int perPage, String organisationId, String searchQuery) {
+    public List<String> check (Person person) {
+        List<String> errors = new LinkedList<>();
+
+        if ((person.getPhones() == null || person.getPhones().length == 0) && (person.getEmails() == null || person.getEmails().length == 0)) errors.add("no phones and no emails given");
+
+        return errors;
+    }
+
+    public List<Person> list (int page, int perPage, Integer userId, Integer organisationId, String searchQuery) {
+
         logger.info("list");
 
-        List<Person> personList = new LinkedList<>();
+        List<Person> personList;
 
-        SearchRequestBuilder req = elasticClient.prepareSearch(E_INDEX)
-                .setTypes(E_TYPE)
-                .setSearchType(SearchType.DEFAULT)
-                .setFrom(page * perPage).setSize(perPage);
+        EntityManager em = emf.createEntityManager();
 
-        if (organisationId.length() > 0) {
-            logger.info("org_id - " + organisationId);
-            req.setQuery(QueryBuilders.matchQuery("organisation_id", organisationId));
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Person> cq = cb.createQuery(Person.class);
+        Root<Person> personRoot = cq.from(Person.class);
+        cq.select(personRoot);
+
+        if (userId != null) {
+            cq.where(cb.equal(personRoot.get("userId"), userId));
         }
 
-        if (searchQuery.length() > 0) {
-            logger.info("s_query - " + searchQuery);
-            req.setQuery(QueryBuilders.prefixQuery("_all", searchQuery));
+        if (organisationId != null) {
+            cq.where(cb.equal(personRoot.get("organisationId"), organisationId));
         }
 
-        SearchResponse response = req.execute().actionGet();
-
-        for (SearchHit sh: response.getHits()) {
-            Person person = gson.fromJson(sh.getSourceAsString(), Person.class);
-            person.id = sh.getId();
-
-            if (person.phone == null) {
-                person.phone = new String[] {""};
-            }
-
-            if (person.email == null) {
-                person.email = new String[] {""};
-            }
-
-            personList.add(person);
-        }
+        personList = em.createQuery(cq).getResultList();
 
         return personList;
     }
 
-    public Person get(String id) {
+    public Person get (long id) {
+
         this.logger.info("get");
 
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        Person person = gson.fromJson(response.getSourceAsString(), Person.class);
-        person.id = response.getId();
+        EntityManager em = emf.createEntityManager();
 
-        if (person.phone == null) {
-            person.phone = new String[] {""};
-        }
+        Person result = em.find(Person.class, id);
 
-        if (person.email == null) {
-            person.email = new String[] {""};
-        }
 
-        return person;
+        em.close();
+
+        return result;
     }
 
-    public Person update(String id, String body) throws Exception {
-        this.logger.info("update");
+    public Person save (Person person) throws Exception {
 
-        Person tOrg = gson.fromJson(body, Person.class);
-        tOrg.change_date = System.currentTimeMillis() / 1000L;
-        // make history record
+        this.logger.info("save");
 
-        UpdateRequest updateRequest = new UpdateRequest(E_INDEX, E_TYPE, id).doc(gson.toJson(tOrg));
-        UpdateResponse updateResponse = elasticClient.update(updateRequest).get();
+        EntityManager em = emf.createEntityManager();
 
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, id).get();
-        Person person = gson.fromJson(response.getSourceAsString(), Person.class);
-        person.id = response.getId();
+        Person result;
 
-        return person;
+        em.getTransaction().begin();
+        result = em.merge(person);
+        em.getTransaction().commit();
+
+
+        em.close();
+
+        return result;
     }
 
-    public Person create(String body) throws Exception {
-        this.logger.info("create");
-
-        Person tOrg = gson.fromJson(body, Person.class);
-        tOrg.add_date = System.currentTimeMillis() / 1000L;
-        tOrg.change_date = System.currentTimeMillis() / 1000L;
-        // make history record
-
-        IndexResponse idxResponse = elasticClient.prepareIndex(E_INDEX, E_TYPE).setSource(gson.toJson(tOrg)).execute().actionGet();
-        GetResponse response = elasticClient.prepareGet(E_INDEX, E_TYPE, idxResponse.getId()).get();
-        Person person = gson.fromJson(response.getSourceAsString(), Person.class);
-        person.id = response.getId();
-
-        return person;
-    }
-
-    public Person delete(String id) {
+    public Person delete (long id) {
         throw new NotImplementedException();
     }
 }
