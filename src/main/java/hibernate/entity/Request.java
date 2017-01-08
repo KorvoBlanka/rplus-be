@@ -3,10 +3,9 @@ package hibernate.entity;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+
+import static utils.CommonUtils.getUnixTimestamp;
 
 /**
  * Created by Aleksandr on 09.11.16.
@@ -23,13 +22,6 @@ public class Request {
 
     @Getter
     @Setter
-    public String agentId;
-    @Getter
-    @Setter
-    public String personId;
-
-    @Getter
-    @Setter
     public String request;
 
     @Getter
@@ -43,4 +35,33 @@ public class Request {
     @Setter
     public String searchArea;
 
+
+    @Getter
+    @Setter
+    public Long personId;
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "person_id", foreignKey = @ForeignKey(name = "PERSON_ID_FK"))
+    private Person person;
+
+    @Getter
+    @Setter
+    public String agentId;
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "USER_ID_FK"))
+    private User user;
+
+    @PreUpdate
+    @PrePersist
+    void preInsert() {
+        if (getId() == null) {
+            setAddDate(getUnixTimestamp());
+        }
+        setChangeDate(getUnixTimestamp());
+    }
 }

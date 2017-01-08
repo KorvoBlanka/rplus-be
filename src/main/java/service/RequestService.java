@@ -9,7 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,28 +42,51 @@ public class RequestService {
 
         logger.info("list");
 
-        List<Request> resList = new LinkedList<>();
+        List<Request> requestList;
 
+        EntityManager em = emf.createEntityManager();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Request> cq = cb.createQuery(Request.class);
+        Root<Request> requestRoot = cq.from(Request.class);
+        cq.select(requestRoot);
 
-        return resList;
+        requestList = em.createQuery(cq).getResultList();
+
+        return requestList;
     }
 
     public Request get (long id) {
 
         this.logger.info("get");
 
-        Request res = null;
+        EntityManager em = emf.createEntityManager();
 
-        return res;
+        Request result = em.find(Request.class, id);
+
+        em.close();
+
+
+        return result;
     }
 
     public Request save (Request request) throws Exception {
 
         this.logger.info("save");
 
-        Request res = null;
+        this.logger.info("save");
 
-        return res;
+        EntityManager em = emf.createEntityManager();
+
+        Request result;
+
+        em.getTransaction().begin();
+        result = em.merge(request);
+        em.getTransaction().commit();
+
+
+        em.close();
+
+        return result;
     }
 
     public Request delete (String id) {

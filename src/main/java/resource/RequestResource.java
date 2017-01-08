@@ -85,7 +85,7 @@ public class RequestResource {
 
             result.put("response", "ok");
             result.put("result", res);
-            response.status(201);
+            response.status(200);
 
             return result;
         }, gson::toJson);
