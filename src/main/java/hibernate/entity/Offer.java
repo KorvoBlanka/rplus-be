@@ -26,7 +26,7 @@ public class Offer {
 
     @Getter
     @Setter
-    private String stage;
+    private String stageCode;
 
     @Getter
     @Setter
@@ -112,7 +112,7 @@ public class Offer {
     private Float agencyPrice;
     @Getter
     @Setter
-    private Float leaseDeposite;
+    private Float leaseDeposit;
 
     @Getter
     @Setter
@@ -157,13 +157,13 @@ public class Offer {
 
     @Getter
     @Setter
-    public Long userId;
+    public Long agentId;
 
     @Getter
     @Setter
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "USER_ID_FK"))
-    private User user;
+    @JoinColumn(name = "agent_id", foreignKey = @ForeignKey(name = "AGENT_ID_FK"))
+    private User agent;
 
 
     @Getter
@@ -175,7 +175,15 @@ public class Offer {
     @ManyToOne
     @JoinColumn(name = "person_id", foreignKey = @ForeignKey(name = "PERSON_ID_FK"))
     private Person person;
-    //public GeoLocation location;
+
+    @Getter
+    @Setter
+    public Double locationLat;
+
+    @Getter
+    @Setter
+    public Double locationLon;
+
     //photos
 
     // tags
@@ -183,21 +191,23 @@ public class Offer {
     @PreUpdate
     @PrePersist
     void preInsert() {
+
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("rplus-be-dev.jpa.hibernate");
+        EntityManager em = emf.createEntityManager();
+
         if (getId() == null) {
             setAddDate(getUnixTimestamp());
         }
         setChangeDate(getUnixTimestamp());
 
-        /*
         if (this.getPersonId() != null) {
-            Person pers = em.find(Person.class, offer.getPersonId());
-            offer.setPerson(pers);
+            Person pers = em.find(Person.class, this.getPersonId());
+            this.setPerson(pers);
         }
 
-        if (this.getUserId() != null) {
-            User usr = em.find(User.class, offer.getUserId());
-            offer.setUser(usr);
+        if (this.getAgentId() != null) {
+            User agent = em.find(User.class, this.getAgentId());
+            this.setAgent(agent);
         }
-        */
     }
 }

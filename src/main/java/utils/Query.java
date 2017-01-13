@@ -109,9 +109,9 @@ public class Query {
             } while (matched == true);
 
             if (price1 != null || price2 != null) {
-                filterList.add(new FilterObject("owner_price", price1, price2));
+                filterList.add(new FilterObject("ownerPrice", price1, price2));
             } else if (exactPrice != null) {
-                filterList.add(new FilterObject("owner_price", exactPrice));
+                filterList.add(new FilterObject("ownerPrice", exactPrice));
             }
         }
 
@@ -171,9 +171,9 @@ public class Query {
             //$q = trim($q) if $matched;
 
             if (rooms_count1 != null || rooms_count2 != null) {
-                filterList.add(new FilterObject("rooms_count", rooms_count1, rooms_count2));
+                filterList.add(new FilterObject("roomsCount", rooms_count1, rooms_count2));
             } else if (rooms_count != null) {
-                filterList.add(new FilterObject("rooms_count", rooms_count));
+                filterList.add(new FilterObject("roomsCount", rooms_count));
             };
         }
 
@@ -272,9 +272,9 @@ public class Query {
             } while (matched);
 
             if (square1 != null || square2 != null) {
-                filterList.add(new FilterObject("square_total", square1, square2));
+                filterList.add(new FilterObject("squareTotal", square1, square2));
             } else if (exactSquare != null) {
-                filterList.add(new FilterObject("square_total", exactSquare));
+                filterList.add(new FilterObject("squareTotal", exactSquare));
             }
         }
 

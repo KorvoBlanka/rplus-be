@@ -3,7 +3,9 @@ package hibernate.entity;
 import lombok.Getter;
 import lombok.Setter;
 
+
 import javax.persistence.*;
+
 
 import static utils.CommonUtils.getUnixTimestamp;
 
@@ -22,6 +24,13 @@ public class Request {
 
     @Getter
     @Setter
+    public String agentId;
+    @Getter
+    @Setter
+    public String personId;
+
+    @Getter
+    @Setter
     public String request;
 
     @Getter
@@ -33,32 +42,14 @@ public class Request {
 
     @Getter
     @Setter
-    public String searchArea;
+    @Column(columnDefinition="BLOB")
+    public GeoPoint[] searchArea;
 
-
-    @Getter
-    @Setter
-    public Long personId;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    @JoinColumn(name = "person_id", foreignKey = @ForeignKey(name = "PERSON_ID_FK"))
-    private Person person;
-
-    @Getter
-    @Setter
-    public String agentId;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "USER_ID_FK"))
-    private User user;
 
     @PreUpdate
     @PrePersist
     void preInsert() {
+
         if (getId() == null) {
             setAddDate(getUnixTimestamp());
         }

@@ -1,21 +1,23 @@
-package elastic.entity;
+package hibernate.entity;
+
+import java.io.Serializable;
+
 /**
- * Created by owl on 4/1/16.
+ * Created by Aleksandr on 13.01.17.
  */
+public class GeoPoint implements Serializable {
 
-public class GeoLocation {
+    Double lat;
+    Double lon;
 
-    Float lat;
-    Float lon;
-
-    public GeoLocation() {
+    public GeoPoint() {
 
         this.lat = null;
         this.lon = null;
 
     }
 
-    public GeoLocation(float lat, float lon) {
+    public GeoPoint(double lat, double lon) {
 
         this.lat = lat;
         this.lon = lon;
@@ -31,5 +33,4 @@ public class GeoLocation {
                 '}';
 
     }
-
 }

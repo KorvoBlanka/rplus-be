@@ -6,6 +6,8 @@ package utils;
 import configuration.AppConfig;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -13,10 +15,23 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 
 public class CommonUtils {
+
+    static Logger logger = LoggerFactory.getLogger(CommonUtils.class);
+
+
+    public static String strNotNull(String str) {
+        return str == null ? "" : str;
+    }
+
+    public static long getUnixTimestamp() {
+        return System.currentTimeMillis() / 1000L;
+    }
+
 
     public static Map<String, String> JsonToMap(String json) {
         Gson gson = new Gson();
@@ -25,8 +40,11 @@ public class CommonUtils {
         return map;
     }
 
-    public static long getUnixTimestamp() {
-        return System.currentTimeMillis() / 1000L;
+    public static List<String> JsonToList(String json) {
+        Gson gson = new Gson();
+        Type stringList = new TypeToken<List<String>>(){}.getType();
+        List<String> list = gson.fromJson(json, stringList);
+        return list;
     }
 
     public static String downloadPhoto(String photoUrl) throws Exception {

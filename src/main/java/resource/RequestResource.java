@@ -41,7 +41,8 @@ public class RequestResource {
 
             int page = 0;
             int perPage = 32;
-            String personId = "";
+            Integer agentId = null;
+            Integer personId = null;
             String searchQuery = "";
 
             if (request.queryParams("page") != null) {
@@ -50,14 +51,17 @@ public class RequestResource {
             if (request.queryParams("per_page") != null) {
                 perPage = Integer.parseInt(request.queryParams("per_page"));
             }
-            if (request.queryParams("person_id") != null) {
-                personId = request.queryParams("person_id");
+            if (request.queryParams("agent_id") != null && request.queryParams("agent_id").length() > 0) {
+                personId = Integer.parseInt(request.queryParams("agent_id"));
+            }
+            if (request.queryParams("person_id") != null && request.queryParams("person_id").length() > 0) {
+                personId = Integer.parseInt(request.queryParams("person_id"));
             }
             if (request.queryParams("search_query") != null) {
                 searchQuery = request.queryParams("search_query");
             }
 
-            List<Request> requestList = requestService.list(page, perPage, personId, searchQuery);
+            List<Request> requestList = requestService.list(page, perPage, agentId, personId, searchQuery);
 
             result.put("response", "ok");
             result.put("result", requestList);

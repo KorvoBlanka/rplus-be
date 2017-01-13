@@ -6,12 +6,24 @@ import com.google.gson.GsonBuilder;
 import hibernate.entity.Offer;
 import hibernate.entity.Person;
 import hibernate.entity.User;
+
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import utils.CommonUtils;
 import utils.FilterObject;
+import utils.GeoUtils;
 import utils.Query;
 
 import javax.persistence.EntityManager;
@@ -41,22 +53,101 @@ public class OfferService {
         this.elasticClient = elasticClient;
     }
 
-    public List<Offer> list (int page, int perPage, Map<String, Integer> filter, String searchQuery) {
+    public List<Offer> list (int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
 
-        List<Offer> offerList;
+        this.logger.info("list");
 
-        Map<String, String> queryParts = Query.process(searchQuery);
-        List<FilterObject> filters = Query.parse(searchQuery);
-        logger.info(gson.toJson(filters));
+        List<Offer> offerList = new ArrayList<>();
 
         EntityManager em = emf.createEntityManager();
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Offer> cq = cb.createQuery(Offer.class);
-        Root<Offer> offerRoot = cq.from(Offer.class);
-        cq.select(offerRoot);
+
+        Map<String, String> queryParts = Query.process(searchQuery);
+        String request = queryParts.get("req");
+        String excl = queryParts.get("excl");
+        String near = queryParts.get("near");
+        List<FilterObject> rangeFilters = Query.parse(request);
+
+        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+                .setTypes("offer")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
 
 
-        offerList = em.createQuery(cq).getResultList();
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+        if (geoSearchPolygon.size() > 0) {
+            q.filter(QueryBuilders.geoPolygonQuery("location", geoSearchPolygon));
+        }
+
+        if (excl != null && excl.length() > 0) {
+            q.mustNot(QueryBuilders.matchQuery("title", excl));
+            q.mustNot(QueryBuilders.matchQuery("address", excl));
+            q.mustNot(QueryBuilders.matchQuery("spec", excl));
+            q.mustNot(QueryBuilders.matchQuery("description", excl));
+        }
+
+
+        // todo: iterate filters
+        if (filter.get("state") != null && !filter.get("state").equals("all")) {
+            q.must(QueryBuilders.matchQuery("stateCode", filter.get("state")));
+        }
+
+        if (filter.get("agent") != null && !filter.get("agent").equals("all")) {
+            q.must(QueryBuilders.matchQuery("agentId", filter.get("agent")));
+        }
+
+        if (filter.get("tag") != null && !filter.get("tag").equals("all")) {
+
+        }
+
+        if (filter.get("depth") != null && !filter.get("depth").equals("all")) {
+            long depth = Long.parseLong(filter.get("depth"));
+
+            // 86400 sec in 1 day
+            long ts = CommonUtils.getUnixTimestamp() - depth * 86400;
+            q.must(QueryBuilders.rangeQuery("changeDate").gte(ts));
+        }
+
+        if (filter.get("typeCode") != null && !filter.get("typeCode").equals("all")) {
+            q.must(QueryBuilders.matchQuery("typeCode", filter.get("typeCode")));
+        }
+
+        if (filter.get("personId") != null && !filter.get("personId").equals("all")) {
+            q.must(QueryBuilders.matchQuery("personId", filter.get("personId")));
+        }
+
+
+        rangeFilters.forEach(fltr -> {
+            if (fltr.exactVal != null) {
+                q.must(QueryBuilders.matchQuery(fltr.fieldName, fltr.exactVal));
+            } else {
+                if (fltr.lowerVal != null) {
+                    q.must(QueryBuilders.rangeQuery(fltr.fieldName).gte(fltr.lowerVal));
+                }
+
+                if (fltr.upperVal != null) {
+                    q.must(QueryBuilders.rangeQuery(fltr.fieldName).lte(fltr.upperVal));
+                }
+            }
+        });
+
+        if (request != null && request.length() > 0) {
+            //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
+            q.should(QueryBuilders.matchQuery("title", request).boost(8));
+            q.should(QueryBuilders.matchQuery("address", request).boost(4));
+            q.should(QueryBuilders.matchQuery("spec", request).boost(2));
+            q.should(QueryBuilders.matchQuery("description", request));
+        }
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+
+        for (SearchHit sh: response.getHits()) {
+            Offer offer = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
+            offerList.add(offer);
+        }
 
         return offerList;
     }
@@ -82,12 +173,137 @@ public class OfferService {
 
         Offer result;
 
+        String fullAddress = CommonUtils.strNotNull(offer.getLocality()) + " " + CommonUtils.strNotNull(offer.getAddress()) + " " + CommonUtils.strNotNull(offer.getHouseNum());
+
+        Double[] latLon = GeoUtils.getCoordsByAddr(fullAddress);
+        if (latLon != null) {
+            offer.setLocationLat(latLon[0]);
+            offer.setLocationLon(latLon[1]);
+
+            List<String> districts = GeoUtils.getLocationDistrict(latLon[0], latLon[1]);
+            if (!districts.isEmpty()) {
+                offer.setDistrict(districts.get(0));
+            }
+        }
+
         em.getTransaction().begin();
         result = em.merge(offer);
         em.getTransaction().commit();
 
+        indexOffer(result);
 
         return result;
+    }
+
+    public void indexOffer(Offer offer) {
+
+        HashMap<String, String> dTypeCode = new HashMap<>();
+        dTypeCode.put("room", "Комната");
+        dTypeCode.put("apartment", "Квартира");
+        dTypeCode.put("house", "Дом");
+        dTypeCode.put("townhouse", "Таунхаус");
+
+
+        HashMap<Integer, String> dApScheme = new HashMap<>();
+        dApScheme.put(1, "Индивидуальная");
+        dApScheme.put(2, "Новая");
+        dApScheme.put(3, "Общежитие");
+        dApScheme.put(4, "Сталинка");
+        dApScheme.put(5, "Улучшенная");
+        dApScheme.put(6, "Хрущевка");
+
+
+        HashMap<Integer, String> dBalcony = new HashMap<>();
+        dBalcony.put(1, "без балкона");
+        dBalcony.put(2, "балкон");
+        dBalcony.put(3, "лоджия");
+        dBalcony.put(4, "2 балкона");
+        dBalcony.put(5, "2 лоджии");
+        dBalcony.put(6, "балкон и лоджия");
+        dBalcony.put(7, "балкон застеклен");
+        dBalcony.put(8, "лоджия застеклена");
+
+
+        HashMap<Integer, String> dBathroom = new HashMap<>();
+        dBathroom.put(1, "без удобств");
+        dBathroom.put(2, "туалет");
+        dBathroom.put(3, "с удобствами");
+        dBathroom.put(4, "душ и туалет");
+        dBathroom.put(5, "2 смежных санузла");
+        dBathroom.put(6, "2 раздельных санузла");
+        dBathroom.put(7, "санузел совмещенный");
+
+        HashMap<Integer, String> dCondition = new HashMap<>();
+        dCondition.put(1, "социальный ремонт");
+        dCondition.put(2, "сделан ремонт");
+        dCondition.put(3, "дизайнерский ремонт");
+        dCondition.put(4, "требуется ремонт");
+        dCondition.put(5, "требуется косм. ремонт");
+        dCondition.put(6, "после строителей");
+        dCondition.put(7, "евроремонт");
+        dCondition.put(8, "удовлетворительное");
+        dCondition.put(9, "нормальное");
+
+        HashMap<Integer, String> dHouseType = new HashMap<>();
+        dHouseType.put(1, "Брус");
+        dHouseType.put(2, "Деревянный");
+        dHouseType.put(3, "Каркасно-засыпной");
+        dHouseType.put(4, "Кирпичный");
+
+        HashMap<Integer, String> dRoomScheme = new HashMap<>();
+        dRoomScheme.put(1, "Икарус");
+        dRoomScheme.put(2, "Кухня-гостинная");
+        dRoomScheme.put(3, "Раздельные");
+        dRoomScheme.put(4, "Смежно-раздельные");
+        dRoomScheme.put(5, "Смежные");
+        dRoomScheme.put(6, "Студия");
+
+
+        String title = dTypeCode.get(offer.getTypeCode());
+
+        String address = CommonUtils.strNotNull(offer.getLocality()) + " " + CommonUtils.strNotNull(offer.getAddress()) + " " + CommonUtils.strNotNull(offer.getHouseNum());
+        if (offer.getDistrict() != null) {
+            address += " " + offer.getDistrict();
+        }
+
+        ArrayList<String> specArray = new ArrayList<>();
+        specArray.add(CommonUtils.strNotNull(dApScheme.get(offer.getApSchemeId())));
+        specArray.add(CommonUtils.strNotNull(dBalcony.get(offer.getBalconyId())));
+        specArray.add(CommonUtils.strNotNull(dBathroom.get(offer.getBathroomId())));
+        specArray.add(CommonUtils.strNotNull(dCondition.get(offer.getConditionId())));
+        specArray.add(CommonUtils.strNotNull(dHouseType.get(offer.getHouseTypeId())));
+        specArray.add(CommonUtils.strNotNull(dRoomScheme.get(offer.getRoomSchemeId())));
+
+        String spec = String.join(" ", specArray);
+
+        Map<String, Object> json = new HashMap<String, Object>();
+        json.put("id", offer.getId());
+        json.put("title", title);
+        json.put("address", address);
+        json.put("spec", spec);
+        json.put("description", CommonUtils.strNotNull(offer.getDescription()));
+
+        // geo search
+        if (offer.getLocationLat() != null && offer.getLocationLon() != 0) {
+            json.put("location", new GeoPoint(offer.getLocationLat(), offer.getLocationLon()));
+        }
+
+        // filters
+        json.put("agentId", offer.getAgentId());
+        json.put("personId", offer.getPersonId());
+        json.put("stateCode", offer.getStateCode());
+        json.put("changeDate", offer.getChangeDate());
+        json.put("typeCode", offer.getTypeCode());
+
+        // range query
+        json.put("floor", offer.getFloor());
+        json.put("ownerPrice", offer.getOwnerPrice());
+        json.put("roomsCount", offer.getRoomsCount());
+        json.put("squareTotal", offer.getSquareTotal());
+
+        IndexResponse response = this.elasticClient.prepareIndex("rplus", "offer", Long.toString(offer.getId())).setSource(json).get();
+        this.logger.info(response.getId());
+
     }
 
     public Offer delete (int id) {

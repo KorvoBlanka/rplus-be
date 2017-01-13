@@ -8,6 +8,7 @@ import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import utils.CommonUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -38,40 +39,44 @@ public class RequestService {
     }
 
 
-    public List<Request> list (int page, int perPage, String personId, String searchQuery) {
+    public List<Request> list (int page, int perPage, Integer agentId, Integer personId, String searchQuery) {
 
         logger.info("list");
 
-        List<Request> requestList;
+        List<Request> reqList;
+
 
         EntityManager em = emf.createEntityManager();
+
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Request> cq = cb.createQuery(Request.class);
-        Root<Request> requestRoot = cq.from(Request.class);
-        cq.select(requestRoot);
+        Root<Request> personRoot = cq.from(Request.class);
+        cq.select(personRoot);
 
-        requestList = em.createQuery(cq).getResultList();
+        if (agentId != null) {
+            cq.where(cb.equal(personRoot.get("agentId"), agentId));
+        }
 
-        return requestList;
+        if (personId != null) {
+            cq.where(cb.equal(personRoot.get("personId"), personId));
+        }
+
+        reqList = em.createQuery(cq).getResultList();
+
+
+        return reqList;
     }
 
     public Request get (long id) {
 
         this.logger.info("get");
 
-        EntityManager em = emf.createEntityManager();
+        Request res = null;
 
-        Request result = em.find(Request.class, id);
-
-        em.close();
-
-
-        return result;
+        return res;
     }
 
     public Request save (Request request) throws Exception {
-
-        this.logger.info("save");
 
         this.logger.info("save");
 
@@ -83,8 +88,7 @@ public class RequestService {
         result = em.merge(request);
         em.getTransaction().commit();
 
-
-        em.close();
+        //indexRequest(result);
 
         return result;
     }
