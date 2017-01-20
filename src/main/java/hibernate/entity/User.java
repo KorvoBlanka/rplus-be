@@ -76,6 +76,11 @@ public class User {
     @Setter
     private Long changeDate;
 
+    @Getter
+    @Setter
+    private Long accountId;
+
+
     @PreUpdate
     @PrePersist
     void preInsert() {

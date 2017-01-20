@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+
+
 import static utils.CommonUtils.getUnixTimestamp;
 
 
@@ -184,9 +186,16 @@ public class Offer {
     @Setter
     public Double locationLon;
 
-    //photos
+    @Getter
+    @Setter
+    @Column(columnDefinition="BLOB")
+    public String[] photoUrl;
 
     // tags
+
+    @Getter
+    @Setter
+    private Long accountId;
 
     @PreUpdate
     @PrePersist
@@ -201,13 +210,74 @@ public class Offer {
         setChangeDate(getUnixTimestamp());
 
         if (this.getPersonId() != null) {
-            Person pers = em.find(Person.class, this.getPersonId());
-            this.setPerson(pers);
+            Person p = em.find(Person.class, this.getPersonId());
+            this.setPerson(p);
         }
 
         if (this.getAgentId() != null) {
             User agent = em.find(User.class, this.getAgentId());
             this.setAgent(agent);
         }
+    }
+
+    public static Offer fromImportOffer(ImportOffer io) {
+
+        Offer o = new Offer();
+
+        o.typeCode = io.type_code;
+
+        o.offerTypeCode = io.offer_type_code;
+
+        o.locality = io.locality;
+        o.address = io.address;
+        o.houseNum = io.house_num;
+        o.apNum = io.ap_num;
+
+        o.district = "";
+        o.poi = "";
+
+        o.houseTypeId = io.house_type_id;
+        o.apSchemeId = io.ap_scheme_id;
+        o.roomSchemeId = io.room_scheme_id;
+        o.conditionId = io.condition_id;
+        o.balconyId = io.balcony_id;
+        o.bathroomId = io.bathroom_id;
+
+        o.roomsCount = io.rooms_count;
+        o.roomsOfferCount = io.rooms_offer_count;
+
+        o.floor = io.floor;
+        o.floorsCount = io.floors_count;
+        o.levelsCount = io.levels_count;
+
+        o.squareTotal = io.square_total;
+        o.squareLiving = io.square_living;
+        o.squareKitchen = io.square_kitchen;
+        o.squareLand = io.square_land;
+
+        o.ownerPrice = io.owner_price;
+
+        o.sourceMedia = io.source_media;
+        o.sourceUrl = io.source_url;
+        o.sourceMediaText = io.source_media_text;
+
+        o.addDate = 0L;
+        o.lastSeenDate = 0L;
+
+
+        o.locationLat = 0.0;
+        o.locationLon = 0.0;
+
+        o.photoUrl = io.photo_url;
+
+        o.person = new Person();
+        o.person.setPhones(io.owner_phones);
+        o.person.setName(io.mediator_company);
+        /*
+        io.owner_phones;
+        io.mediator_company;
+        */
+
+        return o;
     }
 }

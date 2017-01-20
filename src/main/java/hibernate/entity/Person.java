@@ -66,6 +66,11 @@ public class Person {
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "USER_ID_FK"))
     private User user;
 
+    @Getter
+    @Setter
+    private Long accountId;
+
+
     @PreUpdate
     @PrePersist
     void preInsert() {

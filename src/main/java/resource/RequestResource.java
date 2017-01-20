@@ -41,8 +41,7 @@ public class RequestResource {
 
             int page = 0;
             int perPage = 32;
-            Integer agentId = null;
-            Integer personId = null;
+            Map<String, String> filters = new HashMap<>();
             String searchQuery = "";
 
             if (request.queryParams("page") != null) {
@@ -51,17 +50,23 @@ public class RequestResource {
             if (request.queryParams("per_page") != null) {
                 perPage = Integer.parseInt(request.queryParams("per_page"));
             }
+
+
+            if (request.queryParams("offerTypeCode") != null) {
+                filters.put("offerTypeCode", request.queryParams("offerTypeCode"));
+            }
             if (request.queryParams("agent_id") != null && request.queryParams("agent_id").length() > 0) {
-                personId = Integer.parseInt(request.queryParams("agent_id"));
+                filters.put("agentId", request.queryParams("agent_id"));
             }
             if (request.queryParams("person_id") != null && request.queryParams("person_id").length() > 0) {
-                personId = Integer.parseInt(request.queryParams("person_id"));
+                filters.put("personId", request.queryParams("person_id"));
             }
+
             if (request.queryParams("search_query") != null) {
                 searchQuery = request.queryParams("search_query");
             }
 
-            List<Request> requestList = requestService.list(page, perPage, agentId, personId, searchQuery);
+            List<Request> requestList = requestService.list(page, perPage, filters, searchQuery);
 
             result.put("response", "ok");
             result.put("result", requestList);

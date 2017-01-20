@@ -4,7 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import hibernate.entity.Request;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -14,9 +22,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 public class RequestService {
@@ -39,32 +47,55 @@ public class RequestService {
     }
 
 
-    public List<Request> list (int page, int perPage, Integer agentId, Integer personId, String searchQuery) {
+    public List<Request> list (int page, int perPage, Map<String, String> filter, String searchQuery) {
 
         logger.info("list");
 
-        List<Request> reqList;
-
+        List<Request> requestList = new ArrayList<>();
 
         EntityManager em = emf.createEntityManager();
 
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Request> cq = cb.createQuery(Request.class);
-        Root<Request> personRoot = cq.from(Request.class);
-        cq.select(personRoot);
+        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+                .setTypes("request")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
 
-        if (agentId != null) {
-            cq.where(cb.equal(personRoot.get("agentId"), agentId));
+
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+
+        filter.forEach((k,v) -> {
+            logger.info(k + " - " + v);
+            if (v != null && !v.equals("all")) {
+                if (k.equals("changeDate")) {
+                    long date = Long.parseLong(v);
+
+                    // 86400 sec in 1 day
+                    long ts = CommonUtils.getUnixTimestamp() - date * 86400;
+                    q.must(QueryBuilders.rangeQuery(k).gte(ts));
+                } else {
+                    q.must(QueryBuilders.matchQuery(k, v));
+                }
+            }
+        });
+
+
+        if (searchQuery != null && searchQuery.length() > 0) {
+            //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
+            q.must(QueryBuilders.matchQuery("request", searchQuery).boost(8));
         }
 
-        if (personId != null) {
-            cq.where(cb.equal(personRoot.get("personId"), personId));
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+
+        for (SearchHit sh: response.getHits()) {
+            Request request = em.find(hibernate.entity.Request.class, Long.parseLong(sh.getId()));
+            requestList.add(request);
         }
 
-        reqList = em.createQuery(cq).getResultList();
-
-
-        return reqList;
+        return requestList;
     }
 
     public Request get (long id) {
@@ -88,9 +119,22 @@ public class RequestService {
         result = em.merge(request);
         em.getTransaction().commit();
 
-        //indexRequest(result);
+        indexRequest(result);
 
         return result;
+    }
+
+    public void indexRequest(Request request) {
+
+        Map<String, Object> json = new HashMap<>();
+        json.put("id", request.getId());
+        json.put("request", request.request);
+
+        json.put("offerTypeCode", request.getOfferTypeCode());
+        json.put("agentId", request.getAgentId());
+        json.put("personId", request.getPersonId());
+
+        IndexResponse response = this.elasticClient.prepareIndex("rplus", "request", Long.toString(request.getId())).setSource(json).get();
     }
 
     public Request delete (String id) {

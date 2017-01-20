@@ -67,7 +67,7 @@ public class GeoUtils {
 
         } catch (Exception ex) {
             return null;
-        };
+        }
 
         return coords;
     }

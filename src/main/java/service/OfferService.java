@@ -1,8 +1,8 @@
 package service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 
+import hibernate.entity.ImportOffer;
 import hibernate.entity.Offer;
 import hibernate.entity.Person;
 import hibernate.entity.User;
@@ -31,6 +31,11 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 
 
@@ -51,6 +56,57 @@ public class OfferService {
 
         this.emf = emf;
         this.elasticClient = elasticClient;
+    }
+
+    public List<Offer> listImport (int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+        List<Offer> offerList = new ArrayList<>();
+
+        String url = "http://193.124.180.185:19099/api/offer/search?query=" + URLEncoder.encode(searchQuery) + "&offer_type=" + filter.get("offerTypeCode");
+
+
+
+        try {
+
+            URL iurl = new URL(url);
+
+            HttpURLConnection uc = (HttpURLConnection) iurl.openConnection();
+            uc.connect();
+
+            int status = uc.getResponseCode();
+
+            switch (status) {
+                case 200:
+                case 201:
+                    String jsonStr;
+                    BufferedReader br = new BufferedReader(new InputStreamReader(uc.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line+"\n");
+                    }
+                    br.close();
+                    jsonStr = sb.toString();
+
+                    JsonObject jsonObject = new JsonParser().parse(jsonStr).getAsJsonObject();
+
+                    JsonArray t = jsonObject.get("list").getAsJsonArray();
+
+                    t.forEach(je -> {
+                        String os = je.getAsString();
+
+                        ImportOffer io = gson.fromJson(os, ImportOffer.class);
+
+                        Offer offer = Offer.fromImportOffer(io);
+                        offerList.add(offer);
+                    });
+
+            }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            return null;
+        }
+
+        return offerList;
     }
 
     public List<Offer> list (int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
@@ -87,35 +143,20 @@ public class OfferService {
         }
 
 
-        // todo: iterate filters
-        if (filter.get("state") != null && !filter.get("state").equals("all")) {
-            q.must(QueryBuilders.matchQuery("stateCode", filter.get("state")));
-        }
+        filter.forEach((k,v) -> {
+            logger.info(k + " - " + v);
+            if (v != null && !v.equals("all")) {
+                if (k.equals("changeDate")) {
+                    long date = Long.parseLong(v);
 
-        if (filter.get("agent") != null && !filter.get("agent").equals("all")) {
-            q.must(QueryBuilders.matchQuery("agentId", filter.get("agent")));
-        }
-
-        if (filter.get("tag") != null && !filter.get("tag").equals("all")) {
-
-        }
-
-        if (filter.get("depth") != null && !filter.get("depth").equals("all")) {
-            long depth = Long.parseLong(filter.get("depth"));
-
-            // 86400 sec in 1 day
-            long ts = CommonUtils.getUnixTimestamp() - depth * 86400;
-            q.must(QueryBuilders.rangeQuery("changeDate").gte(ts));
-        }
-
-        if (filter.get("typeCode") != null && !filter.get("typeCode").equals("all")) {
-            q.must(QueryBuilders.matchQuery("typeCode", filter.get("typeCode")));
-        }
-
-        if (filter.get("personId") != null && !filter.get("personId").equals("all")) {
-            q.must(QueryBuilders.matchQuery("personId", filter.get("personId")));
-        }
-
+                    // 86400 sec in 1 day
+                    long ts = CommonUtils.getUnixTimestamp() - date * 86400;
+                    q.must(QueryBuilders.rangeQuery(k).gte(ts));
+                } else {
+                    q.must(QueryBuilders.matchQuery(k, v));
+                }
+            }
+        });
 
         rangeFilters.forEach(fltr -> {
             if (fltr.exactVal != null) {
@@ -184,6 +225,15 @@ public class OfferService {
             if (!districts.isEmpty()) {
                 offer.setDistrict(districts.get(0));
             }
+        }
+
+        Person p = offer.getPerson();
+        if (offer.getPersonId() == null && p != null) {
+            em.getTransaction().begin();
+            Person r = em.merge(p);
+            em.getTransaction().commit();
+            offer.setPersonId(r.getId());
+            offer.setPerson(null);
         }
 
         em.getTransaction().begin();
@@ -289,11 +339,12 @@ public class OfferService {
         }
 
         // filters
+        json.put("offerTypeCode", offer.getOfferTypeCode());
+        json.put("typeCode", offer.getTypeCode());
+        json.put("stateCode", offer.getStateCode());
         json.put("agentId", offer.getAgentId());
         json.put("personId", offer.getPersonId());
-        json.put("stateCode", offer.getStateCode());
         json.put("changeDate", offer.getChangeDate());
-        json.put("typeCode", offer.getTypeCode());
 
         // range query
         json.put("floor", offer.getFloor());
@@ -302,8 +353,6 @@ public class OfferService {
         json.put("squareTotal", offer.getSquareTotal());
 
         IndexResponse response = this.elasticClient.prepareIndex("rplus", "offer", Long.toString(offer.getId())).setSource(json).get();
-        this.logger.info(response.getId());
-
     }
 
     public Offer delete (int id) {

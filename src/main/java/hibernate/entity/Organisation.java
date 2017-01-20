@@ -44,6 +44,9 @@ public class Organisation {
     @Setter
     private Long changeDate;
 
+    @Getter
+    @Setter
+    private Long accountId;
 
     @PreUpdate
     @PrePersist

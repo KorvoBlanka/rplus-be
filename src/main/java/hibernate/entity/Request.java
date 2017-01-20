@@ -29,6 +29,20 @@ public class Request {
     @Setter
     public String personId;
 
+
+    @Getter
+    @Setter
+    private String stateCode;
+
+    @Getter
+    @Setter
+    private String stageCode;
+
+    @Getter
+    @Setter
+    public String offerTypeCode;
+
+
     @Getter
     @Setter
     public String request;
@@ -44,6 +58,10 @@ public class Request {
     @Setter
     @Column(columnDefinition="BLOB")
     public GeoPoint[] searchArea;
+
+    @Getter
+    @Setter
+    private Long accountId;
 
 
     @PreUpdate

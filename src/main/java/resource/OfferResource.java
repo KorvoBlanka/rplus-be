@@ -41,7 +41,8 @@ public class OfferResource {
 
             int page = 0;
             int perPage = 32;
-            String search_query = "";
+            String source = "local";
+            String searchQuery = "";
             Map<String, String> filters = new HashMap<>();
             GeoPoint[] polygon = new GeoPoint[0];
 
@@ -51,21 +52,30 @@ public class OfferResource {
             if (request.queryParams("per_page") != null) {
                 perPage = Integer.parseInt(request.queryParams("per_page"));
             }
-            if (request.queryParams("search_query") != null) {
-                search_query = request.queryParams("search_query");
+
+            if (request.queryParams("source") != null) {
+                source = request.queryParams("source");
             }
+
             if (request.queryParams("filter") != null) {
                 String filterStr = request.queryParams("filter");
                 filters = CommonUtils.JsonToMap(filterStr);
             }
-
+            if (request.queryParams("search_query") != null) {
+                searchQuery = request.queryParams("search_query");
+            }
             if (request.queryParams("search_area") != null) {
                 String polygonStr = request.queryParams("search_area");
                 polygon = gson.fromJson(polygonStr, GeoPoint[].class);
             }
 
 
-            List<Offer> offerList = offerService.list(page, perPage, filters, search_query, Arrays.asList(polygon));
+            List<Offer> offerList;
+            if (source != null && source.equals("local")) {
+                offerList = offerService.list(page, perPage, filters, searchQuery, Arrays.asList(polygon));
+            } else {
+                offerList = offerService.listImport(page, perPage, filters, searchQuery, Arrays.asList(polygon));
+            }
 
             result.put("response", "ok");
             result.put("result", offerList);
@@ -79,8 +89,12 @@ public class OfferResource {
             long id = Long.parseLong(request.params(":id"));
             Offer offer = offerService.get(id);
 
-            result.put("response", "ok");
-            result.put("result", offer);
+            if (offer != null) {
+                result.put("response", "ok");
+                result.put("result", offer);
+            } else {
+                result.put("response", "not found");
+            }
 
             return result;
         }, gson::toJson);
