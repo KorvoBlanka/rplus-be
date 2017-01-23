@@ -36,8 +36,8 @@ public class AccountService {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Account> cq = cb.createQuery(Account.class);
-        Root<Account> userRoot = cq.from(Account.class);
-        cq.select(userRoot);
+        Root<Account> accRoot = cq.from(Account.class);
+        cq.select(accRoot);
 
         accountList = em.createQuery(cq).getResultList();
 

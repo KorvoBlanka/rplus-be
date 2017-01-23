@@ -40,7 +40,7 @@ public class UserService {
         return errors;
     }
 
-    public List<User> list (User.Role role, Integer superiorId, String searchQuery) {
+    public List<User> list (Integer accountId, User.Role role, Integer superiorId, String searchQuery) {
 
         this.logger.info("list");
 
@@ -53,12 +53,16 @@ public class UserService {
         Root<User> userRoot = cq.from(User.class);
         cq.select(userRoot);
 
+        if (accountId != null) {
+            cq = cq.where(cb.equal(userRoot.get("accountId"), accountId));
+        }
+
         if (role != null) {
-            cq.where(cb.equal(userRoot.get("role"), role));
+            cq = cq.where(cb.equal(userRoot.get("role"), role));
         }
 
         if (superiorId != null) {
-            cq.where(cb.equal(userRoot.get("superiorId"), superiorId));
+            cq = cq.where(cb.equal(userRoot.get("superiorId"), superiorId));
         }
 
         userList = em.createQuery(cq).getResultList();
@@ -81,7 +85,7 @@ public class UserService {
         return result;
     }
 
-    public User getByLogin (String login) {
+    public User getByLogin (String account, String login) {
 
         this.logger.info("get");
 
@@ -89,7 +93,11 @@ public class UserService {
 
         User result = null;
 
-        result = em.createQuery("FROM User WHERE login = :login", User.class).setParameter("login", login).getSingleResult();
+        List<User> l = em.createQuery("FROM User WHERE login = :login", User.class).setParameter("login", login).getResultList();
+
+        if (l.size() > 0) {
+            result = l.get(0);
+        }
 
         em.close();
 

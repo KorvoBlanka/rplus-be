@@ -42,9 +42,14 @@ public class UserResource {
             Map<String, Object> result = new HashMap<>();
 
             String searchQuery = request.queryParams("searchQuery");
+            Integer accountId = null;
             User.Role role = null;
             Integer superiorId = null;
 
+            String accountIdStr = request.queryParams("accountId");
+            if (accountIdStr != null && StringUtils.isNumeric(accountIdStr)) {
+                accountId = Integer.parseInt(accountIdStr);
+            }
 
             String roleStr = request.queryParams("role");
             if (roleStr != null && User.Role.contains(roleStr)) {
@@ -53,10 +58,10 @@ public class UserResource {
 
             String superiorIdStr = request.queryParams("superiorId");
             if (superiorIdStr != null && StringUtils.isNumeric(superiorIdStr)) {
-                superiorId = Integer.parseInt(request.queryParams("superiorId"));
+                superiorId = Integer.parseInt(superiorIdStr);
             }
 
-            List<User> userList = userService.list(role, superiorId, searchQuery);
+            List<User> userList = userService.list(accountId, role, superiorId, searchQuery);
 
             result.put("response", "ok");
             result.put("result", userList);

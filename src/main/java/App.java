@@ -29,6 +29,7 @@ public class App {
 
     static TransportClient ec;
 
+    static AccountService accountService;
     static UserService userService;
     static OrganisationService orgService;
     static PersonService personService;
@@ -36,16 +37,21 @@ public class App {
     static RequestService requestService;
     static GeoService geoService;
 
+    static SessionManager sm;
+
 
     public static void main(String[] args) throws Exception {
 
         AppConfig.LoadConfig();
         //Spark.externalStaticFileLocation(AppConfig.STATIC_FILE_LOCATION);
 
+        sm = new SessionManager();
+
         ec = getElasticClient();
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("rplus-be-dev.jpa.hibernate");
 
         // services
+        App.accountService = new AccountService(emf);
         App.userService = new UserService(emf);
         App.orgService = new OrganisationService(emf);
         App.personService = new PersonService(emf);
@@ -57,6 +63,7 @@ public class App {
         // resources
         new Authorisation();
         new Maintenance(App.offerService, App.userService, App.personService);
+        new AccountResource(App.accountService);
         new UserResource(App.userService);
         new OrganisationResource(App.orgService);
         new PersonResource(App.personService);

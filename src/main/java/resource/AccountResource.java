@@ -37,7 +37,7 @@ public class AccountResource {
         get(AppConfig.API_CONTEXT + "/account/list", "application/json", (request, response) -> {
 
             Map<String, Object> result = new HashMap<>();
-            List<Account> accountList = null;
+            List<Account> accountList = accountService.list("");
 
             result.put("response", "ok");
             result.put("result", accountList);
@@ -61,7 +61,7 @@ public class AccountResource {
             return result;
         }, gson::toJson);
 
-        post(AppConfig.API_CONTEXT + "/offer/save", "application/json", (request, response) -> {
+        post(AppConfig.API_CONTEXT + "/account/save", "application/json", (request, response) -> {
             Map<String, Object> result = new HashMap<>();
 
             Account account = gson.fromJson(request.body(), Account.class);
@@ -75,7 +75,7 @@ public class AccountResource {
         }, gson::toJson);
 
 
-        post(AppConfig.API_CONTEXT + "/offer/delete/:id", "application/json", (request, response) -> {
+        post(AppConfig.API_CONTEXT + "/account/delete/:id", "application/json", (request, response) -> {
 
             Map<String, Object> result = new HashMap<>();
             int id = Integer.parseInt(request.params(":id"));
