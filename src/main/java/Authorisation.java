@@ -38,7 +38,7 @@ public class Authorisation {
 
         before((request, response) -> {
 
-            String origin = "http://localhost:3000";
+            String origin = "http://maklersoft.com";
             String methods = "*";
             String headers = "*";
             //response.header("Access-Control-Allow-Origin", origin);
