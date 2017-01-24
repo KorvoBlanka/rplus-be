@@ -37,15 +37,11 @@ public class App {
     static RequestService requestService;
     static GeoService geoService;
 
-    static SessionManager sm;
-
 
     public static void main(String[] args) throws Exception {
 
         AppConfig.LoadConfig();
         //Spark.externalStaticFileLocation(AppConfig.STATIC_FILE_LOCATION);
-
-        sm = new SessionManager();
 
         ec = getElasticClient();
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("rplus-be-dev.jpa.hibernate");
