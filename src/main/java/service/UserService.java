@@ -5,6 +5,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.slf4j.Logger;
@@ -51,19 +52,25 @@ public class UserService {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);
         Root<User> userRoot = cq.from(User.class);
-        cq.select(userRoot);
+
+
+        List<Predicate> predicates = new ArrayList<Predicate>();
 
         if (accountId != null) {
-            cq = cq.where(cb.equal(userRoot.get("accountId"), accountId));
+            predicates.add(cb.equal(userRoot.get("accountId"), accountId));
+            //cq = cq.where();
         }
 
         if (role != null) {
-            cq = cq.where(cb.equal(userRoot.get("role"), role));
+            predicates.add(cb.equal(userRoot.get("role"), role));
         }
 
         if (superiorId != null) {
-            cq = cq.where(cb.equal(userRoot.get("superiorId"), superiorId));
+            predicates.add(cb.equal(userRoot.get("superiorId"), superiorId));
         }
+
+        cq.select(userRoot)
+                .where(predicates.toArray(new Predicate[]{}));
 
         userList = em.createQuery(cq).getResultList();
 
@@ -85,15 +92,15 @@ public class UserService {
         return result;
     }
 
-    public User getByLogin (String account, String login) {
+    public User getByLogin (Long accountId, String login) {
 
-        this.logger.info("get");
+        this.logger.info("get by login");
 
         EntityManager em = emf.createEntityManager();
 
         User result = null;
 
-        List<User> l = em.createQuery("FROM User WHERE login = :login", User.class).setParameter("login", login).getResultList();
+        List<User> l = em.createQuery("FROM User WHERE accountId = :accountId AND login = :login", User.class).setParameter("accountId", accountId).setParameter("login", login).getResultList();
 
         if (l.size() > 0) {
             result = l.get(0);

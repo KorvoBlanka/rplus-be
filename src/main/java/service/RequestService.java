@@ -47,7 +47,7 @@ public class RequestService {
     }
 
 
-    public List<Request> list (int page, int perPage, Map<String, String> filter, String searchQuery) {
+    public List<Request> list (Long accountId, int page, int perPage, Map<String, String> filter, String searchQuery) {
 
         logger.info("list");
 
@@ -64,6 +64,8 @@ public class RequestService {
         BoolQueryBuilder q = QueryBuilders.boolQuery();
 
 
+        q.must(QueryBuilders.termQuery("accountId", accountId));
+
         filter.forEach((k,v) -> {
             logger.info(k + " - " + v);
             if (v != null && !v.equals("all")) {
@@ -74,7 +76,7 @@ public class RequestService {
                     long ts = CommonUtils.getUnixTimestamp() - date * 86400;
                     q.must(QueryBuilders.rangeQuery(k).gte(ts));
                 } else {
-                    q.must(QueryBuilders.matchQuery(k, v));
+                    q.must(QueryBuilders.termQuery(k, v));
                 }
             }
         });
@@ -82,7 +84,7 @@ public class RequestService {
 
         if (searchQuery != null && searchQuery.length() > 0) {
             //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
-            q.must(QueryBuilders.matchQuery("request", searchQuery).boost(8));
+            q.must(QueryBuilders.matchQuery("request", searchQuery));
         }
 
         rb.setQuery(q);
@@ -130,6 +132,7 @@ public class RequestService {
         json.put("id", request.getId());
         json.put("request", request.request);
 
+        json.put("accountId", request.getAccountId());
         json.put("offerTypeCode", request.getOfferTypeCode());
         json.put("agentId", request.getAgentId());
         json.put("personId", request.getPersonId());

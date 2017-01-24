@@ -41,7 +41,6 @@ public class UserResource {
 
             Map<String, Object> result = new HashMap<>();
 
-            String searchQuery = request.queryParams("searchQuery");
             Integer accountId = null;
             User.Role role = null;
             Integer superiorId = null;
@@ -60,6 +59,9 @@ public class UserResource {
             if (superiorIdStr != null && StringUtils.isNumeric(superiorIdStr)) {
                 superiorId = Integer.parseInt(superiorIdStr);
             }
+
+            String searchQuery = request.queryParams("searchQuery");
+
 
             List<User> userList = userService.list(accountId, role, superiorId, searchQuery);
 

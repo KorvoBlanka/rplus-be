@@ -109,7 +109,7 @@ public class OfferService {
         return offerList;
     }
 
-    public List<Offer> list (int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+    public List<Offer> list (Long accountId, int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
 
         this.logger.info("list");
 
@@ -130,6 +130,10 @@ public class OfferService {
 
 
         BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+
+
+        q.must(QueryBuilders.termQuery("accountId", accountId));
 
         if (geoSearchPolygon.size() > 0) {
             q.filter(QueryBuilders.geoPolygonQuery("location", geoSearchPolygon));
@@ -153,14 +157,14 @@ public class OfferService {
                     long ts = CommonUtils.getUnixTimestamp() - date * 86400;
                     q.must(QueryBuilders.rangeQuery(k).gte(ts));
                 } else {
-                    q.must(QueryBuilders.matchQuery(k, v));
+                    q.must(QueryBuilders.termQuery(k, v));
                 }
             }
         });
 
         rangeFilters.forEach(fltr -> {
             if (fltr.exactVal != null) {
-                q.must(QueryBuilders.matchQuery(fltr.fieldName, fltr.exactVal));
+                q.must(QueryBuilders.termQuery(fltr.fieldName, fltr.exactVal));
             } else {
                 if (fltr.lowerVal != null) {
                     q.must(QueryBuilders.rangeQuery(fltr.fieldName).gte(fltr.lowerVal));
@@ -339,6 +343,7 @@ public class OfferService {
         }
 
         // filters
+        json.put("accountId", offer.getAccountId());
         json.put("offerTypeCode", offer.getOfferTypeCode());
         json.put("typeCode", offer.getTypeCode());
         json.put("stateCode", offer.getStateCode());

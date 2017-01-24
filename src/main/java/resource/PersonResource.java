@@ -42,11 +42,16 @@ public class PersonResource {
 
             Map<String, Object> result = new HashMap<>();
 
+            Long accountId = 0L;
             int page = 0;
             int perPage = 32;
             Integer userId = null;
             Integer organisationId = null;
             String searchQuery = null;
+
+            if (request.queryParams("accountId") != null) {
+                accountId = Long.parseLong(request.queryParams("accountId"));
+            }
 
             String pageStr = request.queryParams("page");
             if (pageStr != null && StringUtils.isNumeric(pageStr)) {
@@ -72,7 +77,7 @@ public class PersonResource {
                 searchQuery = request.queryParams("searchQuery");
             }
 
-            List<Person> personList = personService.list(page, perPage, userId, organisationId, searchQuery);
+            List<Person> personList = personService.list(accountId, page, perPage, userId, organisationId, searchQuery);
 
             result.put("response", "ok");
             result.put("result", personList);

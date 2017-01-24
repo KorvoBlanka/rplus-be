@@ -5,6 +5,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import hibernate.entity.Organisation;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,7 +41,7 @@ public class PersonService {
         return errors;
     }
 
-    public List<Person> list (int page, int perPage, Integer userId, Integer organisationId, String searchQuery) {
+    public List<Person> list (Long accountId, int page, int perPage, Integer userId, Integer organisationId, String searchQuery) {
 
         logger.info("list");
 
@@ -50,16 +52,24 @@ public class PersonService {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Person> cq = cb.createQuery(Person.class);
         Root<Person> personRoot = cq.from(Person.class);
-        cq.select(personRoot);
+
+
+
+        List<Predicate> predicates = new ArrayList<Predicate>();
+
+        if (accountId != null) {
+            predicates.add(cb.equal(personRoot.get("accountId"), accountId));
+        }
 
         if (userId != null) {
-            cq.where(cb.equal(personRoot.get("userId"), userId));
+            predicates.add(cb.equal(personRoot.get("userId"), userId));
         }
 
         if (organisationId != null) {
-            cq.where(cb.equal(personRoot.get("organisationId"), organisationId));
+            predicates.add(cb.equal(personRoot.get("organisationId"), organisationId));
         }
 
+        cq.select(personRoot).where(predicates.toArray(new Predicate[]{}));
         personList = em.createQuery(cq).getResultList();
 
         return personList;

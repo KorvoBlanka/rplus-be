@@ -39,6 +39,7 @@ public class OfferResource {
 
             Map<String, Object> result = new HashMap<>();
 
+            Long accountId = 0L;
             int page = 0;
             int perPage = 32;
             String source = "local";
@@ -46,6 +47,9 @@ public class OfferResource {
             Map<String, String> filters = new HashMap<>();
             GeoPoint[] polygon = new GeoPoint[0];
 
+            if (request.queryParams("accountId") != null) {
+                accountId = Long.parseLong(request.queryParams("accountId"));
+            }
             if (request.queryParams("page") != null) {
                 page = Integer.parseInt(request.queryParams("page"));
             }
@@ -72,7 +76,7 @@ public class OfferResource {
 
             List<Offer> offerList;
             if (source != null && source.equals("local")) {
-                offerList = offerService.list(page, perPage, filters, searchQuery, Arrays.asList(polygon));
+                offerList = offerService.list(accountId, page, perPage, filters, searchQuery, Arrays.asList(polygon));
             } else {
                 offerList = offerService.listImport(page, perPage, filters, searchQuery, Arrays.asList(polygon));
             }

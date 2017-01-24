@@ -59,6 +59,23 @@ public class AccountService {
         return result;
     }
 
+    public Account getByName(String name) {
+        this.logger.info("get by name");
+
+        EntityManager em = emf.createEntityManager();
+
+        Account result = null;
+
+        List<Account> l = em.createQuery("FROM Account WHERE name = :name", Account.class).setParameter("name", name).getResultList();
+
+        if (l.size() > 0) {
+            result = l.get(0);
+        }
+
+        em.close();
+
+        return result;
+    }
 
     public Account save (Account account) throws Exception {
 

@@ -39,10 +39,16 @@ public class RequestResource {
 
             Map<String, Object> result = new HashMap<>();
 
+            Long accountId = 0L;
             int page = 0;
             int perPage = 32;
             Map<String, String> filters = new HashMap<>();
             String searchQuery = "";
+
+
+            if (request.queryParams("accountId") != null) {
+                accountId = Long.parseLong(request.queryParams("accountId"));
+            }
 
             if (request.queryParams("page") != null) {
                 page = Integer.parseInt(request.queryParams("page"));
@@ -66,7 +72,7 @@ public class RequestResource {
                 searchQuery = request.queryParams("search_query");
             }
 
-            List<Request> requestList = requestService.list(page, perPage, filters, searchQuery);
+            List<Request> requestList = requestService.list(accountId, page, perPage, filters, searchQuery);
 
             result.put("response", "ok");
             result.put("result", requestList);
