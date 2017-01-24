@@ -19,7 +19,6 @@ import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import utils.CommonUtils;
 import utils.FilterObject;
@@ -361,6 +360,5 @@ public class OfferService {
     }
 
     public Offer delete (int id) {
-        throw new NotImplementedException();
     }
 }

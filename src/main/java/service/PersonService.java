@@ -12,7 +12,6 @@ import hibernate.entity.Organisation;
 import hibernate.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -108,6 +107,5 @@ public class PersonService {
     }
 
     public Person delete (long id) {
-        throw new NotImplementedException();
     }
 }

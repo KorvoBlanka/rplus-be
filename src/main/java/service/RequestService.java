@@ -15,7 +15,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utils.CommonUtils;
 
 import javax.persistence.EntityManager;
@@ -141,6 +140,5 @@ public class RequestService {
     }
 
     public Request delete (String id) {
-        throw new NotImplementedException();
     }
 }
