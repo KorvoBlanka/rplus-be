@@ -128,5 +128,6 @@ public class UserService {
     }
 
     public User delete (long id) {
+        return null;
     }
 }

@@ -360,5 +360,6 @@ public class OfferService {
     }
 
     public Offer delete (int id) {
+        return null;
     }
 }

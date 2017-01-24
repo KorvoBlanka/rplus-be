@@ -107,5 +107,6 @@ public class PersonService {
     }
 
     public Person delete (long id) {
+        return null;
     }
 }

@@ -91,5 +91,6 @@ public class OrganisationService {
     }
 
     public Organisation delete (long id) {
+        return null;
     }
 }

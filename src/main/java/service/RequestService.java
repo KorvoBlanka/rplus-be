@@ -140,5 +140,6 @@ public class RequestService {
     }
 
     public Request delete (String id) {
+        return null;
     }
 }

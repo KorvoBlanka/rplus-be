@@ -94,7 +94,7 @@ public class AccountService {
     }
 
     public Account delete (long id) {
-
+        return null;
     }
 
 }
