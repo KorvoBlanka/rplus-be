@@ -13,6 +13,7 @@ import static spark.Spark.get;
 import static spark.Spark.post;
 
 import com.google.gson.Gson;
+import configuration.AppConfig;
 import hibernate.entity.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class Authorisation {
 
         before((request, response) -> {
 
-            String origin = "http://maklersoft.com";
+            String rqOrigin = request.headers("Origin");
             String methods = "*";
             String headers = "*";
             //response.header("Access-Control-Allow-Origin", origin);
@@ -47,18 +48,18 @@ public class Authorisation {
             response.header("Access-Control-Allow-Credentials", "true");
 
             String apiKey = request.queryParams("api_key");
-
-            if (apiKey != null && apiKey.equals("18l8lIwH9r0D3777OR3E0W1t4Pu1r8oY")) {
-                // TODO: вытащить ориджин из заголовка и проверить что он в вайт листе
-                origin = "http://xn--b1adacaabaehsdbwnyeec1a7dwa0toa.xn--p1ai";
-                response.header("Access-Control-Allow-Origin", origin);
-                return;
-            } else {
-                response.header("Access-Control-Allow-Origin", origin);
+            if (apiKey != null) {
+                if (AppConfig.KEY_LIST.contains(apiKey)) {
+                    response.header("Access-Control-Allow-Origin", rqOrigin);
+                    return;
+                } else {
+                    halt(401, "bad key");
+                }
+            } else if (AppConfig.CORS_WHITELIST.contains(rqOrigin)) {
+                response.header("Access-Control-Allow-Origin", rqOrigin);
             }
-            if (AUTH_CHECK_DISABLED || !request.uri().startsWith("/api")) return;
 
-            logger.info(request.uri());
+            if (AUTH_CHECK_DISABLED || !request.uri().startsWith("/api")) return;
 
             if (request.session().isNew() || request.session().attribute("logged_in") == null || (boolean)request.session().attribute("logged_in") != true) {
                 halt(401, "unauthorized");
@@ -124,7 +125,7 @@ public class Authorisation {
         get("/session/check", (request, res) -> {
 
             HashMap<String, Object> result = new HashMap<>();
-            if (request.session().isNew() || (boolean)request.session().attribute("logged_in") != true) {
+            if (request.session().isNew() || request.session().attribute("logged_in") == null || (boolean)request.session().attribute("logged_in") != true) {
                 result.put("result", "FAIL");
             } else {
                 Account acc = request.session().attribute("account");

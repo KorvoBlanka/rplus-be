@@ -3,9 +3,8 @@
 
 # my stuff
 app_config
-scripts/history
-scripts/lock
-#target/
+/out/
+/target/
 
 # User-specific stuff:
 .idea/workspace.xml
