@@ -5,6 +5,7 @@
 app_config
 /out/
 /target/
+/elastic/elasticsearch-5.1.1/
 
 # User-specific stuff:
 .idea/workspace.xml
