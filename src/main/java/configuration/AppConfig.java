@@ -14,6 +14,7 @@ public class AppConfig {
 
     public static List<String> CORS_WHITELIST = new LinkedList<>();
     public static List<String> KEY_LIST = new LinkedList<>();
+    public static String IMPORT_URL = "import.rplusmgmt.com:19050";
 
     public static String API_CONTEXT = "/api/v1";
     public static String SERVICE_CONTEXT = "/service/v1";
@@ -41,6 +42,8 @@ public class AppConfig {
         for (int i = 0; i < t.length; i++) {
             AppConfig.KEY_LIST.add(t[i].trim());
         }
+
+        AppConfig.IMPORT_URL = conf_map.get("IMPORT_URL");
 
         AppConfig.STATIC_FILE_LOCATION = conf_map.get("STATIC_FILE_LOCATION");
         AppConfig.FILE_STORAGE_PATH = AppConfig.STATIC_FILE_LOCATION + conf_map.get("FILE_STORAGE_PATH");
