@@ -118,9 +118,11 @@ public class Offer {
 
     @Getter
     @Setter
+    @Column(columnDefinition="TEXT")
     private String workInfo;
     @Getter
     @Setter
+    @Column(columnDefinition="TEXT")
     private String description;
     @Getter
     @Setter
@@ -130,6 +132,7 @@ public class Offer {
     private String sourceUrl;
     @Getter
     @Setter
+    @Column(columnDefinition="TEXT")
     private String sourceMediaText;
 
     @Getter
@@ -273,6 +276,9 @@ public class Offer {
         o.person = new Person();
         o.person.setPhones(io.owner_phones);
         o.person.setName(io.mediator_company);
+
+        o.locationLat = io.location_lat;
+        o.locationLon = io.location_lon;
         /*
         io.owner_phones;
         io.mediator_company;

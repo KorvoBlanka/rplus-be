@@ -57,13 +57,12 @@ public class ImportOffer {
     public String add_date;
     public String last_seen_date;
 
-    public Double location_lat;
-    public Double location_lon;
-
     public String photo_url[];
 
     public String owner_phones[];
     public String owner_name;
     public String mediator_company;
 
+    public Double location_lat;
+    public Double location_lon;
 }

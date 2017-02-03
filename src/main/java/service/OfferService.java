@@ -61,11 +61,16 @@ public class OfferService {
     public List<Offer> listImport (int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
         List<Offer> offerList = new ArrayList<>();
 
+        this.logger.info("list import");
+
         String url = AppConfig.IMPORT_URL + "/api/offer/search?"
         + "query=" + URLEncoder.encode(searchQuery)
         + "&offer_type=" + filter.get("offerTypeCode")
         + "&page=" + page
-        + "&per_page=" + perPage;
+        + "&per_page=" + perPage
+        + "&search_area=" + gson.toJson(geoSearchPolygon);
+
+        this.logger.info(url);
 
         try {
 
