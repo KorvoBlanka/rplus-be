@@ -259,10 +259,31 @@ public class OfferService {
     public void indexOffer(Offer offer) {
 
         HashMap<String, String> dTypeCode = new HashMap<>();
+
         dTypeCode.put("room", "Комната");
         dTypeCode.put("apartment", "Квартира");
+        dTypeCode.put("apartment_small", "Малосемейка");
+        dTypeCode.put("apartment_new", "Новостройка");
         dTypeCode.put("house", "Дом");
+
+        dTypeCode.put("dacha", "Дача");
+        dTypeCode.put("cottage", "Коттедж");
+
         dTypeCode.put("townhouse", "Таунхаус");
+
+        dTypeCode.put("other", "Другое");
+        dTypeCode.put("land", "Земля");
+
+        dTypeCode.put("building", "здание");
+        dTypeCode.put("office_place", "офис");
+        dTypeCode.put("office", "офис");
+        dTypeCode.put("market_place", "торговая площадь");
+        dTypeCode.put("production_place", "производственное помещение");
+        dTypeCode.put("gpurpose_place", "помещение общего назначения");
+        dTypeCode.put("autoservice_place", "автосервис");
+        dTypeCode.put("service_place", "помещение под сферу услуг");
+        dTypeCode.put("warehouse_place", "склад база");
+        dTypeCode.put("garage", "гараж");
 
 
         HashMap<Integer, String> dApScheme = new HashMap<>();
