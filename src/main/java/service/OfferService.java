@@ -17,6 +17,8 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +60,7 @@ public class OfferService {
         this.elasticClient = elasticClient;
     }
 
-    public List<Offer> listImport (int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+    public List<Offer> listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
         List<Offer> offerList = new ArrayList<>();
 
         this.logger.info("list import");
@@ -68,6 +70,7 @@ public class OfferService {
         + "&offer_type=" + filter.get("offerTypeCode")
         + "&page=" + page
         + "&per_page=" + perPage
+        + "&sort=" + gson.toJson(sort)
         + "&search_area=" + gson.toJson(geoSearchPolygon);
 
         this.logger.info(url);
@@ -116,7 +119,7 @@ public class OfferService {
         return offerList;
     }
 
-    public List<Offer> list (Long accountId, int page, int perPage, Map<String, String> filter, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+    public List<Offer> list (Long accountId, int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
 
         this.logger.info("list");
 
@@ -137,8 +140,6 @@ public class OfferService {
 
 
         BoolQueryBuilder q = QueryBuilders.boolQuery();
-
-
 
         q.must(QueryBuilders.termQuery("accountId", accountId));
 
@@ -190,6 +191,15 @@ public class OfferService {
             q.should(QueryBuilders.matchQuery("spec", request).boost(2));
             q.should(QueryBuilders.matchQuery("description", request));
         }
+
+        sort.forEach((k,v) -> {
+            if (v.equals("ASC")) {
+                rb.addSort(SortBuilders.fieldSort(k).order(SortOrder.ASC));
+            } else if (v.equals("DESC")) {
+                rb.addSort(SortBuilders.fieldSort(k).order(SortOrder.DESC));
+            }
+        });
+
 
         rb.setQuery(q);
 

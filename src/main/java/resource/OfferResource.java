@@ -45,6 +45,7 @@ public class OfferResource {
             String source = "local";
             String searchQuery = "";
             Map<String, String> filters = new HashMap<>();
+            Map<String, String> sort = new HashMap<>();
             GeoPoint[] polygon = new GeoPoint[0];
 
             if (request.queryParams("accountId") != null) {
@@ -65,6 +66,11 @@ public class OfferResource {
                 String filterStr = request.queryParams("filter");
                 filters = CommonUtils.JsonToMap(filterStr);
             }
+            if (request.queryParams("sort") != null) {
+                String sortStr = request.queryParams("sort");
+                sort = CommonUtils.JsonToMap(sortStr);
+            }
+
             if (request.queryParams("search_query") != null) {
                 searchQuery = request.queryParams("search_query");
             }
@@ -76,9 +82,9 @@ public class OfferResource {
 
             List<Offer> offerList;
             if (source != null && source.equals("local")) {
-                offerList = offerService.list(accountId, page, perPage, filters, searchQuery, Arrays.asList(polygon));
+                offerList = offerService.list(accountId, page, perPage, filters, sort, searchQuery, Arrays.asList(polygon));
             } else {
-                offerList = offerService.listImport(page, perPage, filters, searchQuery, Arrays.asList(polygon));
+                offerList = offerService.listImport(page, perPage, filters, sort, searchQuery, Arrays.asList(polygon));
             }
 
             result.put("response", "ok");
