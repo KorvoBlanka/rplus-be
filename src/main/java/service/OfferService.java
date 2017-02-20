@@ -43,6 +43,11 @@ import java.util.*;
 
 public class OfferService {
 
+    public class ListResult {
+        long hitsCount;
+        List<Offer> list;
+    }
+
     Logger logger = LoggerFactory.getLogger(OfferService.class);
 
     EntityManagerFactory emf;
@@ -60,8 +65,11 @@ public class OfferService {
         this.elasticClient = elasticClient;
     }
 
-    public List<Offer> listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+    public ListResult listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
         List<Offer> offerList = new ArrayList<>();
+        Long hitsCount = 0L;
+        ListResult r = new ListResult();
+        r.hitsCount = 0;
 
         this.logger.info("list import");
 
@@ -100,6 +108,7 @@ public class OfferService {
                     JsonObject jsonObject = new JsonParser().parse(jsonStr).getAsJsonObject();
 
                     JsonArray t = jsonObject.get("list").getAsJsonArray();
+                    hitsCount = jsonObject.get("hitsCount").getAsLong();
 
                     t.forEach(je -> {
                         String os = je.getAsString();
@@ -116,10 +125,13 @@ public class OfferService {
             return null;
         }
 
-        return offerList;
+        r.hitsCount = hitsCount;
+        r.list = offerList;
+
+        return r;
     }
 
-    public List<Offer> list (Long accountId, int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+    public ListResult list (Long accountId, int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
 
         this.logger.info("list");
 
@@ -205,13 +217,18 @@ public class OfferService {
 
         SearchResponse response = rb.execute().actionGet();
 
+        ListResult r = new ListResult();
+        r.hitsCount = response.getHits().getTotalHits();
+
 
         for (SearchHit sh: response.getHits()) {
             Offer offer = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
             offerList.add(offer);
         }
 
-        return offerList;
+        r.list = offerList;
+
+        return r;
     }
 
     public Offer get (long id) {

@@ -140,6 +140,9 @@ public class Offer {
     private Long addDate;
     @Getter
     @Setter
+    private Long openDate;
+    @Getter
+    @Setter
     private Long changeDate;
     @Getter
     @Setter

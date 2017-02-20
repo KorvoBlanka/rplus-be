@@ -80,15 +80,15 @@ public class OfferResource {
             }
 
 
-            List<Offer> offerList;
+            OfferService.ListResult r;
             if (source != null && source.equals("local")) {
-                offerList = offerService.list(accountId, page, perPage, filters, sort, searchQuery, Arrays.asList(polygon));
+                r = offerService.list(accountId, page, perPage, filters, sort, searchQuery, Arrays.asList(polygon));
             } else {
-                offerList = offerService.listImport(page, perPage, filters, sort, searchQuery, Arrays.asList(polygon));
+                r = offerService.listImport(page, perPage, filters, sort, searchQuery, Arrays.asList(polygon));
             }
 
             result.put("response", "ok");
-            result.put("result", offerList);
+            result.put("result", r);
 
             return result;
         }, gson::toJson);

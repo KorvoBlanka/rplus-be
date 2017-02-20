@@ -36,6 +36,7 @@ public class App {
     static OfferService offerService;
     static RequestService requestService;
     static GeoService geoService;
+    static UploadService uploadService;
 
 
     public static void main(String[] args) throws Exception {
@@ -54,7 +55,7 @@ public class App {
         App.offerService = new OfferService(emf, ec);
         App.requestService = new RequestService(emf, ec);
         App.geoService = new GeoService();
-
+        App.uploadService = new UploadService();
 
         // resources
         new Authorisation();
@@ -66,6 +67,7 @@ public class App {
         new OfferResource(App.offerService);
         new RequestResource(App.requestService);
         new GeoResource(App.geoService);
+        new UploadResource(App.uploadService);
 
         //new PhotoResource(App.photoService);
         //new PersonResource(App.person_service);
