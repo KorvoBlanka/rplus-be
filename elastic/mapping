@@ -5,6 +5,76 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
             "properties": {
                 "location": {
                     "type": "geo_point"
+                },
+
+
+                "locality": {
+                    "type": "text",
+                    "fielddata": true,
+                    "fields": {
+                       "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                       }
+                    }
+                },
+                "address": {
+                    "type": "text",
+                    "fielddata": true,
+                    "fields": {
+                       "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                       }
+                    }
+                },
+                "district": {
+                    "type": "text",
+                    "fielddata": true,
+                    "fields": {
+                       "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                       }
+                    }
+                },
+                "poi": {
+                    "type": "text",
+                    "fielddata": true,
+                    "fields": {
+                       "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                       }
+                    }
+                },
+
+                "agentName": {
+                    "type": "keyword"
+                },
+                "contactName": {
+                    "type": "keyword"
+                },
+                "typeCode": {
+                    "type": "keyword"
+                },
+                "houseType": {
+                    "type": "keyword"
+                },
+                "apScheme": {
+                    "type": "keyword"
+                },
+                "roomScheme": {
+                    "type": "keyword"
+                },
+                "condition": {
+                    "type": "keyword"
+                },
+                "balcony": {
+                    "type": "keyword"
+                },
+                "bathroom": {
+                    "type": "keyword"
                 }
             }
         }

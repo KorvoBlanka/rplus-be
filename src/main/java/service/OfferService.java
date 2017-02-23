@@ -8,6 +8,7 @@ import hibernate.entity.Offer;
 import hibernate.entity.Person;
 import hibernate.entity.User;
 
+import lombok.Setter;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -161,7 +162,7 @@ public class OfferService {
 
         if (excl != null && excl.length() > 0) {
             q.mustNot(QueryBuilders.matchQuery("title", excl));
-            q.mustNot(QueryBuilders.matchQuery("address", excl));
+            q.mustNot(QueryBuilders.matchQuery("address_ext", excl));
             q.mustNot(QueryBuilders.matchQuery("spec", excl));
             q.mustNot(QueryBuilders.matchQuery("description", excl));
         }
@@ -199,7 +200,7 @@ public class OfferService {
         if (request != null && request.length() > 0) {
             //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
             q.should(QueryBuilders.matchQuery("title", request).boost(8));
-            q.should(QueryBuilders.matchQuery("address", request).boost(4));
+            q.should(QueryBuilders.matchQuery("address_ext", request).boost(4));
             q.should(QueryBuilders.matchQuery("spec", request).boost(2));
             q.should(QueryBuilders.matchQuery("description", request));
         }
@@ -388,7 +389,7 @@ public class OfferService {
         Map<String, Object> json = new HashMap<String, Object>();
         json.put("id", offer.getId());
         json.put("title", title);
-        json.put("address", address);
+        json.put("address_ext", address);
         json.put("spec", spec);
         json.put("description", CommonUtils.strNotNull(offer.getDescription()));
 
@@ -411,6 +412,32 @@ public class OfferService {
         json.put("ownerPrice", offer.getOwnerPrice());
         json.put("roomsCount", offer.getRoomsCount());
         json.put("squareTotal", offer.getSquareTotal());
+
+        // sort
+        json.put("locality", offer.getLocality());
+        json.put("address", offer.getAddress());
+        json.put("district", offer.getDistrict());
+        json.put("poi", offer.getDistrict());
+
+
+        json.put("houseType", dHouseType.get(offer.getHouseTypeId()));
+        json.put("apScheme", dApScheme.get(offer.getApSchemeId()));
+        json.put("roomScheme", dRoomScheme.get(offer.getRoomSchemeId()));
+        json.put("condition", dCondition.get(offer.getConditionId()));
+        json.put("balcony", dBalcony.get(offer.getBalconyId()));
+        json.put("bathroom", dBathroom.get(offer.getBalconyId()));
+
+        json.put("addDate", offer.getAddDate());
+        json.put("changeDate", offer.getChangeDate());
+        json.put("lastSeenDate", offer.getLastSeenDate());
+
+        // TODO: что если имя изменили?
+        if (offer.getAgent() != null) {
+            json.put("agentName", offer.getAgent().getName());
+        }
+        if (offer.getPerson() != null) {
+            json.put("contactName", offer.getPerson().getName());
+        }
 
         IndexResponse response = this.elasticClient.prepareIndex("rplus", "offer", Long.toString(offer.getId())).setSource(json).get();
     }
