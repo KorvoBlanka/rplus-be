@@ -15,7 +15,10 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.common.lucene.search.MoreLikeThisQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MoreLikeThisQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -215,6 +218,42 @@ public class OfferService {
 
 
         rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+        ListResult r = new ListResult();
+        r.hitsCount = response.getHits().getTotalHits();
+
+
+        for (SearchHit sh: response.getHits()) {
+            Offer offer = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
+            offerList.add(offer);
+        }
+
+        r.list = offerList;
+
+        return r;
+    }
+
+    public ListResult listSimilar (Long accountId, int page, int perPage, long id) {
+
+        this.logger.info("list similar");
+
+        List<Offer> offerList = new ArrayList<>();
+
+        EntityManager em = emf.createEntityManager();
+
+        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+                .setTypes("offer")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
+
+        MoreLikeThisQueryBuilder.Item[] itms = {new MoreLikeThisQueryBuilder.Item("rplus", "offer", Long.toString(id))};
+
+        MoreLikeThisQueryBuilder q = QueryBuilders.moreLikeThisQuery(itms);
+
+        rb.setQuery(q);
+
 
         SearchResponse response = rb.execute().actionGet();
 

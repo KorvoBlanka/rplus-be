@@ -93,6 +93,34 @@ public class OfferResource {
             return result;
         }, gson::toJson);
 
+        get(AppConfig.API_CONTEXT + "/offer/list_similar/:id", "application/json", (request, response) -> {
+            Map<String, Object> result = new HashMap<>();
+
+            long id = Long.parseLong(request.params(":id"));
+
+            Long accountId = 0L;
+            int page = 0;
+            int perPage = 32;
+
+            if (request.queryParams("accountId") != null) {
+                accountId = Long.parseLong(request.queryParams("accountId"));
+            }
+            if (request.queryParams("page") != null) {
+                page = Integer.parseInt(request.queryParams("page"));
+            }
+            if (request.queryParams("per_page") != null) {
+                perPage = Integer.parseInt(request.queryParams("per_page"));
+            }
+
+            OfferService.ListResult r;
+            r = offerService.listSimilar(accountId, page, perPage, id);
+
+            result.put("response", "ok");
+            result.put("result", r);
+
+            return result;
+        }, gson::toJson);
+
         get(AppConfig.API_CONTEXT + "/offer/get/:id", "application/json", (request, response) -> {
 
             Map<String, Object> result = new HashMap<>();

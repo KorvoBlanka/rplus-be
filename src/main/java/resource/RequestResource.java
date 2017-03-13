@@ -7,6 +7,7 @@ import configuration.AppConfig;
 import com.google.gson.Gson;
 
 import hibernate.entity.Request;
+import hibernate.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.RequestService;
@@ -62,7 +63,14 @@ public class RequestResource {
                 filters.put("offerTypeCode", request.queryParams("offerTypeCode"));
             }
             if (request.queryParams("agent_id") != null && request.queryParams("agent_id").length() > 0) {
-                filters.put("agentId", request.queryParams("agent_id"));
+
+                if (request.queryParams("agent_id").equals("my")) {
+                    User u = request.session().attribute("user");
+                    filters.put("agentId", u.getId().toString());
+                } else {
+                    filters.put("agentId", request.queryParams("agent_id"));
+                }
+
             }
             if (request.queryParams("person_id") != null && request.queryParams("person_id").length() > 0) {
                 filters.put("personId", request.queryParams("person_id"));
@@ -73,6 +81,36 @@ public class RequestResource {
             }
 
             List<Request> requestList = requestService.list(accountId, page, perPage, filters, searchQuery);
+
+            result.put("response", "ok");
+            result.put("result", requestList);
+
+            return result;
+        }, gson::toJson);
+
+        get(AppConfig.API_CONTEXT + "/request/list_for_offer/:id", "application/json", (request, response) -> {
+            Map<String, Object> result = new HashMap<>();
+
+            Long accountId = 0L;
+            int page = 0;
+            int perPage = 32;
+
+
+            long offerId = Long.parseLong(request.params(":id"));
+
+            if (request.queryParams("accountId") != null) {
+                accountId = Long.parseLong(request.queryParams("accountId"));
+            }
+
+            if (request.queryParams("page") != null) {
+                page = Integer.parseInt(request.queryParams("page"));
+            }
+            if (request.queryParams("per_page") != null) {
+                perPage = Integer.parseInt(request.queryParams("per_page"));
+            }
+
+
+            List<Request> requestList = requestService.listForOffer(accountId, page, perPage, offerId);
 
             result.put("response", "ok");
             result.put("result", requestList);

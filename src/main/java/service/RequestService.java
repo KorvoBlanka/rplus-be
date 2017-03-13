@@ -3,7 +3,9 @@ package service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import hibernate.entity.Offer;
 import hibernate.entity.Request;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -97,6 +99,50 @@ public class RequestService {
         }
 
         return requestList;
+    }
+
+    public List<Request> listForOffer (Long accountId, int page, int perPage, Long offerId) {
+
+        logger.info("list for offer");
+
+        List<Request> requestList = new ArrayList<>();
+
+        EntityManager em = emf.createEntityManager();
+
+        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+                .setTypes("request")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
+
+
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+
+        q.must(QueryBuilders.termQuery("accountId", accountId));
+
+        GetResponse resp = elasticClient.prepareGet("rplus", "offer", offerId.toString()).get();
+
+        Map<String, Object> om = resp.getSource();
+
+        String search_str = om.get("title").toString() + " "
+                + om.get("address_ext").toString() + " "
+                + om.get("spec").toString() + " "
+                + om.get("description").toString() + " ";
+
+        q.should(QueryBuilders.matchQuery("request", search_str));
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+
+        for (SearchHit sh: response.getHits()) {
+            Request request = em.find(hibernate.entity.Request.class, Long.parseLong(sh.getId()));
+            requestList.add(request);
+        }
+
+        return requestList;
+
     }
 
     public Request get (long id) {
