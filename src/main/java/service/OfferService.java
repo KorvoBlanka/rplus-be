@@ -117,14 +117,20 @@ public class OfferService {
                     t.forEach(je -> {
                         String os = je.getAsString();
 
-                        ImportOffer io = gson.fromJson(os, ImportOffer.class);
+                        try {
+                            ImportOffer io = gson.fromJson(os, ImportOffer.class);
 
-                        Offer offer = Offer.fromImportOffer(io);
-                        offerList.add(offer);
+                            Offer offer = Offer.fromImportOffer(io);
+                            offerList.add(offer);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            logger.error(ex.getMessage());
+                        }
                     });
 
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             logger.error(ex.getMessage());
             return null;
         }
