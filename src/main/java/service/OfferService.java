@@ -14,12 +14,10 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.geo.GeoDistance;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.lucene.search.MoreLikeThisQuery;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MoreLikeThisQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -62,11 +60,97 @@ public class OfferService {
 
     Gson gson = new GsonBuilder().create();
 
+    HashMap<String, String> dTypeCode = new HashMap<>();
+    HashMap<Integer, String> dApScheme = new HashMap<>();
+    HashMap<Integer, String> dBalcony = new HashMap<>();
+    HashMap<Integer, String> dBathroom = new HashMap<>();
+    HashMap<Integer, String> dCondition = new HashMap<>();
+    HashMap<Integer, String> dHouseType = new HashMap<>();
+    HashMap<Integer, String> dRoomScheme = new HashMap<>();
+
 
     public OfferService (EntityManagerFactory emf, Client elasticClient) {
 
         this.emf = emf;
         this.elasticClient = elasticClient;
+
+
+        dTypeCode.put("room", "Комната");
+        dTypeCode.put("apartment", "Квартира");
+        dTypeCode.put("apartment_small", "Малосемейка");
+        dTypeCode.put("apartment_new", "Новостройка");
+        dTypeCode.put("house", "Дом");
+
+        dTypeCode.put("dacha", "Дача");
+        dTypeCode.put("cottage", "Коттедж");
+
+        dTypeCode.put("townhouse", "Таунхаус");
+
+        dTypeCode.put("other", "Другое");
+        dTypeCode.put("land", "Земля");
+
+        dTypeCode.put("building", "здание");
+        dTypeCode.put("office_place", "офис");
+        dTypeCode.put("office", "офис");
+        dTypeCode.put("market_place", "торговая площадь");
+        dTypeCode.put("production_place", "производственное помещение");
+        dTypeCode.put("gpurpose_place", "помещение общего назначения");
+        dTypeCode.put("autoservice_place", "автосервис");
+        dTypeCode.put("service_place", "помещение под сферу услуг");
+        dTypeCode.put("warehouse_place", "склад база");
+        dTypeCode.put("garage", "гараж");
+
+
+        dApScheme.put(1, "Индивидуальная");
+        dApScheme.put(2, "Новая");
+        dApScheme.put(3, "Общежитие");
+        dApScheme.put(4, "Сталинка");
+        dApScheme.put(5, "Улучшенная");
+        dApScheme.put(6, "Хрущевка");
+
+
+        dBalcony.put(1, "без балкона");
+        dBalcony.put(2, "балкон");
+        dBalcony.put(3, "лоджия");
+        dBalcony.put(4, "2 балкона");
+        dBalcony.put(5, "2 лоджии");
+        dBalcony.put(6, "балкон и лоджия");
+        dBalcony.put(7, "балкон застеклен");
+        dBalcony.put(8, "лоджия застеклена");
+
+
+        dBathroom.put(1, "без удобств");
+        dBathroom.put(2, "туалет");
+        dBathroom.put(3, "с удобствами");
+        dBathroom.put(4, "душ и туалет");
+        dBathroom.put(5, "2 смежных санузла");
+        dBathroom.put(6, "2 раздельных санузла");
+        dBathroom.put(7, "санузел совмещенный");
+
+
+        dCondition.put(1, "социальный ремонт");
+        dCondition.put(2, "сделан ремонт");
+        dCondition.put(3, "дизайнерский ремонт");
+        dCondition.put(4, "требуется ремонт");
+        dCondition.put(5, "требуется косм. ремонт");
+        dCondition.put(6, "после строителей");
+        dCondition.put(7, "евроремонт");
+        dCondition.put(8, "удовлетворительное");
+        dCondition.put(9, "нормальное");
+
+
+        dHouseType.put(1, "Брус");
+        dHouseType.put(2, "Деревянный");
+        dHouseType.put(3, "Каркасно-засыпной");
+        dHouseType.put(4, "Кирпичный");
+
+
+        dRoomScheme.put(1, "Икарус");
+        dRoomScheme.put(2, "Кухня-гостинная");
+        dRoomScheme.put(3, "Раздельные");
+        dRoomScheme.put(4, "Смежно-раздельные");
+        dRoomScheme.put(5, "Смежные");
+        dRoomScheme.put(6, "Студия");
     }
 
     public ListResult listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
@@ -249,17 +333,41 @@ public class OfferService {
 
         EntityManager em = emf.createEntityManager();
 
+        Offer offer = em.find(hibernate.entity.Offer.class, id);
+
         SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
                 .setTypes("offer")
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setFrom(page * perPage).setSize(perPage);
 
-        MoreLikeThisQueryBuilder.Item[] itms = {new MoreLikeThisQueryBuilder.Item("rplus", "offer", Long.toString(id))};
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
 
-        MoreLikeThisQueryBuilder q = QueryBuilders.moreLikeThisQuery(itms);
+        q.must(QueryBuilders.termQuery("accountId", accountId));
+        q.must(QueryBuilders.termQuery("typeCode", offer.getTypeCode()));
+        q.mustNot(QueryBuilders.termQuery("id", offer.getId()));
+
+        if (offer.getHouseTypeId() != null && offer.getHouseTypeId() > 0) {
+            q.must(QueryBuilders.termQuery("houseType", dHouseType.get(offer.getHouseTypeId())));
+        }
+
+        if (offer.getRoomsCount() != null && offer.getRoomsCount() > 0) {
+            q.must(QueryBuilders.termQuery("roomsCount", offer.getRoomsCount()));
+        }
+
+        if (offer.getSquareTotal() != null && offer.getSquareTotal() > 0) {
+            q.must(QueryBuilders.rangeQuery("squareTotal").lte(offer.getSquareTotal() + 10).gte(offer.getSquareTotal() - 10));
+        }
+
+        if (offer.getLocationLat() != null) {
+            GeoDistanceQueryBuilder gdr = QueryBuilders.geoDistanceQuery("location");
+            gdr.point(offer.getLocationLat(), offer.getLocationLon());
+            gdr.distance("500m");
+            q.filter(gdr);
+        } else if (offer.getDistrict() != null && offer.getDistrict().length() > 0) {
+            q.must(QueryBuilders.termQuery("district", offer.getDistrict()));
+        }
 
         rb.setQuery(q);
-
 
         SearchResponse response = rb.execute().actionGet();
 
@@ -268,8 +376,8 @@ public class OfferService {
 
 
         for (SearchHit sh: response.getHits()) {
-            Offer offer = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
-            offerList.add(offer);
+            Offer o = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
+            offerList.add(o);
         }
 
         r.list = offerList;
@@ -330,89 +438,6 @@ public class OfferService {
     }
 
     public void indexOffer(Offer offer) {
-
-        HashMap<String, String> dTypeCode = new HashMap<>();
-
-        dTypeCode.put("room", "Комната");
-        dTypeCode.put("apartment", "Квартира");
-        dTypeCode.put("apartment_small", "Малосемейка");
-        dTypeCode.put("apartment_new", "Новостройка");
-        dTypeCode.put("house", "Дом");
-
-        dTypeCode.put("dacha", "Дача");
-        dTypeCode.put("cottage", "Коттедж");
-
-        dTypeCode.put("townhouse", "Таунхаус");
-
-        dTypeCode.put("other", "Другое");
-        dTypeCode.put("land", "Земля");
-
-        dTypeCode.put("building", "здание");
-        dTypeCode.put("office_place", "офис");
-        dTypeCode.put("office", "офис");
-        dTypeCode.put("market_place", "торговая площадь");
-        dTypeCode.put("production_place", "производственное помещение");
-        dTypeCode.put("gpurpose_place", "помещение общего назначения");
-        dTypeCode.put("autoservice_place", "автосервис");
-        dTypeCode.put("service_place", "помещение под сферу услуг");
-        dTypeCode.put("warehouse_place", "склад база");
-        dTypeCode.put("garage", "гараж");
-
-
-        HashMap<Integer, String> dApScheme = new HashMap<>();
-        dApScheme.put(1, "Индивидуальная");
-        dApScheme.put(2, "Новая");
-        dApScheme.put(3, "Общежитие");
-        dApScheme.put(4, "Сталинка");
-        dApScheme.put(5, "Улучшенная");
-        dApScheme.put(6, "Хрущевка");
-
-
-        HashMap<Integer, String> dBalcony = new HashMap<>();
-        dBalcony.put(1, "без балкона");
-        dBalcony.put(2, "балкон");
-        dBalcony.put(3, "лоджия");
-        dBalcony.put(4, "2 балкона");
-        dBalcony.put(5, "2 лоджии");
-        dBalcony.put(6, "балкон и лоджия");
-        dBalcony.put(7, "балкон застеклен");
-        dBalcony.put(8, "лоджия застеклена");
-
-
-        HashMap<Integer, String> dBathroom = new HashMap<>();
-        dBathroom.put(1, "без удобств");
-        dBathroom.put(2, "туалет");
-        dBathroom.put(3, "с удобствами");
-        dBathroom.put(4, "душ и туалет");
-        dBathroom.put(5, "2 смежных санузла");
-        dBathroom.put(6, "2 раздельных санузла");
-        dBathroom.put(7, "санузел совмещенный");
-
-        HashMap<Integer, String> dCondition = new HashMap<>();
-        dCondition.put(1, "социальный ремонт");
-        dCondition.put(2, "сделан ремонт");
-        dCondition.put(3, "дизайнерский ремонт");
-        dCondition.put(4, "требуется ремонт");
-        dCondition.put(5, "требуется косм. ремонт");
-        dCondition.put(6, "после строителей");
-        dCondition.put(7, "евроремонт");
-        dCondition.put(8, "удовлетворительное");
-        dCondition.put(9, "нормальное");
-
-        HashMap<Integer, String> dHouseType = new HashMap<>();
-        dHouseType.put(1, "Брус");
-        dHouseType.put(2, "Деревянный");
-        dHouseType.put(3, "Каркасно-засыпной");
-        dHouseType.put(4, "Кирпичный");
-
-        HashMap<Integer, String> dRoomScheme = new HashMap<>();
-        dRoomScheme.put(1, "Икарус");
-        dRoomScheme.put(2, "Кухня-гостинная");
-        dRoomScheme.put(3, "Раздельные");
-        dRoomScheme.put(4, "Смежно-раздельные");
-        dRoomScheme.put(5, "Смежные");
-        dRoomScheme.put(6, "Студия");
-
 
         String title = dTypeCode.get(offer.getTypeCode());
 
