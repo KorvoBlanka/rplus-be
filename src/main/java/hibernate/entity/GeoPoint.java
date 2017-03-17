@@ -7,8 +7,8 @@ import java.io.Serializable;
  */
 public class GeoPoint implements Serializable {
 
-    Double lat;
-    Double lon;
+    public Double lat;
+    public Double lon;
 
     public GeoPoint() {
 

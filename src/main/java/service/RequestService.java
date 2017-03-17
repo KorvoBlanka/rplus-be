@@ -13,11 +13,16 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.CommonUtils;
+import utils.FilterObject;
+import utils.Query;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -101,6 +106,76 @@ public class RequestService {
         return requestList;
     }
 
+    public float checkOffer (Long accountId, Long offerId, String offerTypeCode, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+
+        this.logger.info("list");
+
+        List<Offer> offerList = new ArrayList<>();
+
+        EntityManager em = emf.createEntityManager();
+
+        Map<String, String> queryParts = Query.process(searchQuery);
+        String request = queryParts.get("req");
+        String excl = queryParts.get("excl");
+        String near = queryParts.get("near");
+        List<FilterObject> rangeFilters = Query.parse(request);
+
+        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+                .setTypes("offer")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(0).setSize(10);
+
+
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+        q.must(QueryBuilders.termQuery("accountId", accountId));
+        q.must(QueryBuilders.termQuery("id", offerId));
+        q.must(QueryBuilders.termQuery("offerTypeCode", offerTypeCode));
+
+        if (geoSearchPolygon.size() > 0) {
+            q.filter(QueryBuilders.geoPolygonQuery("location", geoSearchPolygon));
+        }
+
+        if (excl != null && excl.length() > 0) {
+            q.mustNot(QueryBuilders.matchQuery("title", excl));
+            q.mustNot(QueryBuilders.matchQuery("address_ext", excl));
+            q.mustNot(QueryBuilders.matchQuery("spec", excl));
+            q.mustNot(QueryBuilders.matchQuery("description", excl));
+        }
+
+        rangeFilters.forEach(fltr -> {
+            if (fltr.exactVal != null) {
+                q.must(QueryBuilders.termQuery(fltr.fieldName, fltr.exactVal));
+            } else {
+                if (fltr.lowerVal != null) {
+                    q.must(QueryBuilders.rangeQuery(fltr.fieldName).gte(fltr.lowerVal));
+                }
+
+                if (fltr.upperVal != null) {
+                    q.must(QueryBuilders.rangeQuery(fltr.fieldName).lte(fltr.upperVal));
+                }
+            }
+        });
+
+        if (request != null && request.length() > 0) {
+            q.should(QueryBuilders.matchQuery("title", request).boost(8));
+            q.should(QueryBuilders.matchQuery("address_ext", request).boost(4));
+            q.should(QueryBuilders.matchQuery("spec", request).boost(2));
+            q.should(QueryBuilders.matchQuery("description", request));
+        }
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+
+        if (response.getHits().getTotalHits() > 0) {
+            return response.getHits().getMaxScore();
+        }
+
+        return 0.0f;
+    }
+
     public List<Request> listForOffer (Long accountId, int page, int perPage, Long offerId) {
 
         logger.info("list for offer");
@@ -109,6 +184,49 @@ public class RequestService {
 
         EntityManager em = emf.createEntityManager();
 
+        // получить список запросов
+
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Request> cq = cb.createQuery(Request.class);
+        Root<Request> userRoot = cq.from(Request.class);
+
+        List<Predicate> predicates = new ArrayList<Predicate>();
+
+        if (accountId != null) {
+            predicates.add(cb.equal(userRoot.get("accountId"), accountId));
+        }
+
+        cq.select(userRoot)
+                .where(predicates.toArray(new Predicate[]{}));
+
+        List<Request> rqList = em.createQuery(cq).getResultList();
+
+        // перебрать и проверить подходит ли объект
+        HashMap<Float, Request> tMap = new HashMap<Float, Request>();
+        rqList.forEach(rq -> {
+            ArrayList<GeoPoint> gpa = new ArrayList<>();
+            for (hibernate.entity.GeoPoint p : rq.getSearchArea()) {
+                gpa.add(new GeoPoint(p.lat, p.lon));
+            }
+            if (rq.getOfferTypeCode() != null) {
+                float score = checkOffer(accountId, offerId, rq.getOfferTypeCode(), rq.getRequest(), gpa);
+                if (score > 0.0f) {
+                    if (tMap.get(score) != null) {
+                        score += 0.00001;
+                    }
+                    tMap.put(score, rq);
+                }
+            }
+        });
+
+        // отсортировать подходящие по оценке
+        SortedSet<Float> scores = new TreeSet<Float>(tMap.keySet());
+        for (Float s : scores) {
+            Request r = tMap.get(s);
+            requestList.add(0, r);
+        }
+
+        /*
         SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
                 .setTypes("request")
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
@@ -121,15 +239,12 @@ public class RequestService {
         q.must(QueryBuilders.termQuery("accountId", accountId));
 
         GetResponse resp = elasticClient.prepareGet("rplus", "offer", offerId.toString()).get();
-
         Map<String, Object> om = resp.getSource();
 
-        String search_str = om.get("title").toString() + " "
-                + om.get("address_ext").toString() + " "
-                + om.get("spec").toString() + " "
-                + om.get("description").toString() + " ";
+        q.must(QueryBuilders.matchQuery("request", om.get("title").toString() + " " + om.get("address").toString()).operator(Operator.AND));
+        q.should(QueryBuilders.matchQuery("request", om.get("spec").toString() + " " + om.get("description").toString()));
 
-        q.should(QueryBuilders.matchQuery("request", search_str));
+        // + условие на попадание в область
 
         rb.setQuery(q);
 
@@ -140,9 +255,9 @@ public class RequestService {
             Request request = em.find(hibernate.entity.Request.class, Long.parseLong(sh.getId()));
             requestList.add(request);
         }
+        */
 
         return requestList;
-
     }
 
     public Request get (long id) {
