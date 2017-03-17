@@ -210,7 +210,7 @@ public class RequestService {
             }
             if (rq.getOfferTypeCode() != null) {
                 float score = checkOffer(accountId, offerId, rq.getOfferTypeCode(), rq.getRequest(), gpa);
-                if (score > 0.0f) {
+                if (score > 2.1f) {
                     if (tMap.get(score) != null) {
                         score += 0.00001;
                     }
