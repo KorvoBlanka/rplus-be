@@ -91,6 +91,7 @@ public class Authorisation {
 
             if (acc == null) {
                 result.put("result", "FAIL");
+                result.put("msg", "account not found");
             } else {
 
                 User user = App.userService.getByLogin(acc.getId(), login);
@@ -105,6 +106,7 @@ public class Authorisation {
                     result.put("result", "OK");
                 } else {
                     result.put("result", "FAIL");
+                    result.put("msg", "bad login or pass");
                 }
             }
 
