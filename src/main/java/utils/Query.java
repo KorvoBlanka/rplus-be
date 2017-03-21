@@ -127,7 +127,7 @@ public class Query {
 
                 // range
                 Pattern p = Pattern.compile(
-                        sta_re + "(\\d)\\s*\\-\\s*(\\d)\\s*к(?:\\.|(?:омн(?:\\.|ат\\w*)?)?)?" + end_re);
+                        sta_re + "(\\d)\\s*\\-\\s*(\\d)\\s*к(?:\\.|(?:омн(?:\\.|ат\\w*|атная\\w*)?)?)?" + end_re);
                 Matcher m = p.matcher(query);
 
                 if (m.find()) {
@@ -138,7 +138,7 @@ public class Query {
                 } else {
                     //single
                     p = Pattern.compile(
-                            sta_re + "(\\d)(?:\\-?х\\s)?\\s*к(?:\\.|(?:омн(?:\\.|ат\\w*)?)?)?" + end_re);
+                            sta_re + "(\\d)(?:\\-?х\\s)?\\s*к(?:\\.|(?:омн(?:\\.|ат\\w*|атная\\w*)?)?)?" + end_re);
                     m = p.matcher(query);
                     if (m.find()) {
                         rooms_count = Integer.parseInt(m.group(1));
@@ -147,7 +147,7 @@ public class Query {
                     } else {
                         // special case
                         p = Pattern.compile(
-                                sta_re + "(одн[оа]|двух|трех|четырех|пяти|шести|семи|восьми|девяти)\\s*комн(?:\\.|(?:ат\\w*)?)?" + end_re);
+                                sta_re + "(одн[оа]|двух|трех|четырех|пяти|шести|семи|восьми|девяти)\\s*комн(?:\\.|(?:ат\\w*|атная\\w*)?)?" + end_re);
                         m = p.matcher(query);
                         if (m.find()) {
                             String v = m.group(1);

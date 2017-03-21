@@ -309,6 +309,10 @@ public class OfferService {
 
         rb.setQuery(q);
 
+        if (searchQuery != null && searchQuery.length() > 0) {
+            rb.setMinScore(2.06f);
+        }
+
         SearchResponse response = rb.execute().actionGet();
 
         ListResult r = new ListResult();
