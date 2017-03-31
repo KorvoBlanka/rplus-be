@@ -1,4 +1,4 @@
-curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
+curl -XPUT 'localhost:9200/rplus-import' -H 'Content-Type: application/json' -d'
 {
     "mappings": {
         "offer": {
@@ -6,7 +6,6 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
                 "location": {
                     "type": "geo_point"
                 },
-
 
                 "locality": {
                     "type": "text",

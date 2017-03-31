@@ -291,7 +291,8 @@ public class OfferService {
         });
 
         if (request != null && request.length() > 0) {
-            //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
+            q.must(QueryBuilders.matchQuery("tags", searchQuery).operator(Operator.AND));
+
             q.should(QueryBuilders.matchQuery("title", request).boost(8));
             q.should(QueryBuilders.matchQuery("address_ext", request).boost(4));
             q.should(QueryBuilders.matchQuery("spec", request).boost(2));
@@ -309,9 +310,11 @@ public class OfferService {
 
         rb.setQuery(q);
 
+        /*
         if (searchQuery != null && searchQuery.length() > 0) {
             rb.setMinScore(2.06f);
         }
+        */
 
         SearchResponse response = rb.execute().actionGet();
 
@@ -466,6 +469,8 @@ public class OfferService {
         json.put("address_ext", address);
         json.put("spec", spec);
         json.put("description", CommonUtils.strNotNull(offer.getDescription()));
+
+        json.put("tags", title + " " + address + " " + spec + " " + CommonUtils.strNotNull(offer.getDescription()));
 
         // geo search
         if (offer.getLocationLat() != null && offer.getLocationLon() != 0) {
