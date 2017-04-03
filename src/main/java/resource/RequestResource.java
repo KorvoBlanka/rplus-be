@@ -62,6 +62,11 @@ public class RequestResource {
             if (request.queryParams("offerTypeCode") != null) {
                 filters.put("offerTypeCode", request.queryParams("offerTypeCode"));
             }
+
+            if (request.queryParams("stageCode") != null) {
+                filters.put("stageCode", request.queryParams("stageCode"));
+            }
+
             if (request.queryParams("agent_id") != null && request.queryParams("agent_id").length() > 0) {
 
                 if (request.queryParams("agent_id").equals("my")) {

@@ -263,15 +263,23 @@ public class OfferService {
 
         filter.forEach((k,v) -> {
             logger.info(k + " - " + v);
-            if (v != null && !v.equals("all")) {
-                if (k.equals("changeDate")) {
-                    long date = Long.parseLong(v);
-
-                    // 86400 sec in 1 day
-                    long ts = CommonUtils.getUnixTimestamp() - date * 86400;
-                    q.must(QueryBuilders.rangeQuery(k).gte(ts));
-                } else {
+            if (k.equals("stageCode")) {
+                if (v != null && !v.equals("all")) {
                     q.must(QueryBuilders.termQuery(k, v));
+                } else {
+                    q.mustNot(QueryBuilders.termQuery(k, "archive"));
+                }
+            } else {
+                if (v != null && !v.equals("all")) {
+                    if (k.equals("changeDate")) {
+                        long date = Long.parseLong(v);
+
+                        // 86400 sec in 1 day
+                        long ts = CommonUtils.getUnixTimestamp() - date * 86400;
+                        q.must(QueryBuilders.rangeQuery(k).gte(ts));
+                    } else {
+                        q.must(QueryBuilders.termQuery(k, v));
+                    }
                 }
             }
         });
@@ -299,13 +307,18 @@ public class OfferService {
             q.should(QueryBuilders.matchQuery("description", request));
         }
 
-        sort.forEach((k,v) -> {
-            if (v.equals("ASC")) {
-                rb.addSort(SortBuilders.fieldSort(k).order(SortOrder.ASC));
-            } else if (v.equals("DESC")) {
-                rb.addSort(SortBuilders.fieldSort(k).order(SortOrder.DESC));
-            }
-        });
+
+        if (sort.size() == 0) {
+            rb.addSort(SortBuilders.fieldSort("addDate").order(SortOrder.DESC));
+        } else {
+            sort.forEach((k, v) -> {
+                if (v.equals("ASC")) {
+                    rb.addSort(SortBuilders.fieldSort(k).order(SortOrder.ASC));
+                } else if (v.equals("DESC")) {
+                    rb.addSort(SortBuilders.fieldSort(k).order(SortOrder.DESC));
+                }
+            });
+        }
 
 
         rb.setQuery(q);
@@ -481,7 +494,7 @@ public class OfferService {
         json.put("accountId", offer.getAccountId());
         json.put("offerTypeCode", offer.getOfferTypeCode());
         json.put("typeCode", offer.getTypeCode());
-        json.put("stateCode", offer.getStateCode());
+        json.put("stageCode", offer.getStageCode());
         json.put("agentId", offer.getAgentId());
         json.put("personId", offer.getPersonId());
         json.put("changeDate", offer.getChangeDate());

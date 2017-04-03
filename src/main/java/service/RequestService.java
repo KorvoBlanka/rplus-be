@@ -73,16 +73,23 @@ public class RequestService {
         q.must(QueryBuilders.termQuery("accountId", accountId));
 
         filter.forEach((k,v) -> {
-            logger.info(k + " - " + v);
-            if (v != null && !v.equals("all")) {
-                if (k.equals("changeDate")) {
-                    long date = Long.parseLong(v);
-
-                    // 86400 sec in 1 day
-                    long ts = CommonUtils.getUnixTimestamp() - date * 86400;
-                    q.must(QueryBuilders.rangeQuery(k).gte(ts));
-                } else {
+            if (k.equals("stageCode")) {
+                if (v != null && !v.equals("all")) {
                     q.must(QueryBuilders.termQuery(k, v));
+                } else {
+                    q.mustNot(QueryBuilders.termQuery(k, "archive"));
+                }
+            } else {
+                if (v != null && !v.equals("all")) {
+                    if (k.equals("changeDate")) {
+                        long date = Long.parseLong(v);
+
+                        // 86400 sec in 1 day
+                        long ts = CommonUtils.getUnixTimestamp() - date * 86400;
+                        q.must(QueryBuilders.rangeQuery(k).gte(ts));
+                    } else {
+                        q.must(QueryBuilders.termQuery(k, v));
+                    }
                 }
             }
         });
@@ -92,6 +99,8 @@ public class RequestService {
             //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
             q.must(QueryBuilders.matchQuery("request", searchQuery));
         }
+
+        rb.addSort(SortBuilders.fieldSort("id").order(SortOrder.DESC));
 
         rb.setQuery(q);
 
@@ -226,37 +235,6 @@ public class RequestService {
             requestList.add(0, r);
         }
 
-        /*
-        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
-                .setTypes("request")
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setFrom(page * perPage).setSize(perPage);
-
-
-        BoolQueryBuilder q = QueryBuilders.boolQuery();
-
-
-        q.must(QueryBuilders.termQuery("accountId", accountId));
-
-        GetResponse resp = elasticClient.prepareGet("rplus", "offer", offerId.toString()).get();
-        Map<String, Object> om = resp.getSource();
-
-        q.must(QueryBuilders.matchQuery("request", om.get("title").toString() + " " + om.get("address").toString()).operator(Operator.AND));
-        q.should(QueryBuilders.matchQuery("request", om.get("spec").toString() + " " + om.get("description").toString()));
-
-        // + условие на попадание в область
-
-        rb.setQuery(q);
-
-        SearchResponse response = rb.execute().actionGet();
-
-
-        for (SearchHit sh: response.getHits()) {
-            Request request = em.find(hibernate.entity.Request.class, Long.parseLong(sh.getId()));
-            requestList.add(request);
-        }
-        */
-
         return requestList;
     }
 
@@ -291,6 +269,8 @@ public class RequestService {
         Map<String, Object> json = new HashMap<>();
         json.put("id", request.getId());
         json.put("request", request.request);
+
+        json.put("stageCode", request.getStageCode());
 
         json.put("accountId", request.getAccountId());
         json.put("offerTypeCode", request.getOfferTypeCode());
