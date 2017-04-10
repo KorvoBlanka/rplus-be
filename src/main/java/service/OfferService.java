@@ -298,7 +298,7 @@ public class OfferService {
             }
         });
 
-        if (request != null && request.length() > 0) {
+        if (request != null && request.length() > 2) {
             q.must(QueryBuilders.matchQuery("tags", searchQuery).operator(Operator.AND));
 
             q.should(QueryBuilders.matchQuery("title", request).boost(8));

@@ -95,7 +95,7 @@ public class RequestService {
         });
 
 
-        if (searchQuery != null && searchQuery.length() > 3) {
+        if (searchQuery != null && searchQuery.length() > 2) {
             //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
             q.must(QueryBuilders.matchQuery("request", searchQuery));
         }

@@ -203,6 +203,183 @@ public class Offer {
     @Setter
     private Long accountId;
 
+
+    // new stuff
+    @Getter
+    @Setter
+    private String  stageCode_n;
+
+    @Getter
+    @Setter
+    private String  sourceCode_n;
+
+    @Getter
+    @Setter
+    private String sourceUrl_n;
+
+    @Getter
+    @Setter
+    private String offerTypeCode_n;
+
+    @Getter
+    @Setter
+    private String typeCode_n;
+
+    @Getter
+    @Setter
+    private String region_n;
+    @Getter
+    @Setter
+    private String city_n;
+    @Getter
+    @Setter
+    private String area_n;
+    @Getter
+    @Setter
+    private String admArea_n;
+    @Getter
+    @Setter
+    private String street_n;
+    @Getter
+    @Setter
+    private String house_n;
+    @Getter
+    @Setter
+    private String housing_n;
+    @Getter
+    @Setter
+    private String apartment_n;
+
+    @Getter
+    @Setter
+    private String settlement_n;
+
+    @Getter
+    @Setter
+    private Boolean newBuilding_n;
+
+    @Getter
+    @Setter
+    private String objectStage_n;
+
+    @Getter
+    @Setter
+    private String buildYear_n;
+
+    @Getter
+    @Setter
+    private String houseType_n;
+    @Getter
+    @Setter
+    private String houseMaterial_n;
+    @Getter
+    @Setter
+    private Integer roomsCount_n;
+
+    @Getter
+    @Setter
+    private String roomsType_n;
+
+    @Getter
+    @Setter
+    private Integer floor_n;
+    @Getter
+    @Setter
+    private Integer floorsCount_n;
+    @Getter
+    @Setter
+    private Integer levelsCount_n;
+
+    @Getter
+    @Setter
+    private Float squareTotal_n;
+    @Getter
+    @Setter
+    private Float squareLiving_n;
+    @Getter
+    @Setter
+    private Float squareKitchen_n;
+    @Getter
+    @Setter
+    private Float squareLand_n;
+    @Getter
+    @Setter
+    private Float squareLandType_n;
+
+    @Getter
+    @Setter
+    private Boolean balcony_n;
+    @Getter
+    @Setter
+    private Boolean loggia_n;
+
+    @Getter
+    @Setter
+    private String bathroom_n;
+
+    @Getter
+    @Setter
+    private String condition_n;
+
+    @Getter
+    @Setter
+    private Float price_n;
+    @Getter
+    @Setter
+    private Float comission_n;
+    @Getter
+    @Setter
+    private Float comissionPerc_n;
+
+    @Getter
+    @Setter
+    private Float distance_n;
+
+    @Getter
+    @Setter
+    private Boolean guard_n;
+
+    @Getter
+    @Setter
+    private Boolean waterSupply_n;
+
+    @Getter
+    @Setter
+    private Boolean gasification_n;
+    @Getter
+    @Setter
+    private Boolean electrification_n;
+    @Getter
+    @Setter
+    private Boolean sewerage_n;
+    @Getter
+    @Setter
+    private Boolean centralHeating_n;
+    @Getter
+    @Setter
+    private Boolean lift_n;
+    @Getter
+    @Setter
+    private Boolean parking_n;
+
+    @Getter
+    @Setter
+    private String landPurpose_n;
+    @Getter
+    @Setter
+    private String objectName_n;
+    @Getter
+    @Setter
+    private String buildingType_n;
+    @Getter
+    @Setter
+    private String buildingClass_n;
+
+    @Getter
+    @Setter
+    private Float сeilingHeight_n;
+
+
     @PreUpdate
     @PrePersist
     void preInsert() {
