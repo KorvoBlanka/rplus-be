@@ -25,10 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-import utils.CommonUtils;
-import utils.FilterObject;
-import utils.GeoUtils;
-import utils.Query;
+import utils.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -237,7 +234,10 @@ public class OfferService {
         String request = queryParts.get("req");
         String excl = queryParts.get("excl");
         String near = queryParts.get("near");
-        List<FilterObject> rangeFilters = Query.parse(request);
+
+        ParseResult pr = Query.parse(request);
+        List<FilterObject> rangeFilters = pr.filterList;
+
 
         SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
                 .setTypes("offer")
@@ -298,13 +298,14 @@ public class OfferService {
             }
         });
 
-        if (request != null && request.length() > 2) {
-            q.must(QueryBuilders.matchQuery("tags", searchQuery).operator(Operator.AND));
+        if (pr.query != null && pr.query.length() > 2) {
+            
+            q.must(QueryBuilders.matchQuery("tags", pr.query).operator(Operator.AND));
 
-            q.should(QueryBuilders.matchQuery("title", request).boost(8));
-            q.should(QueryBuilders.matchQuery("address_ext", request).boost(4));
-            q.should(QueryBuilders.matchQuery("spec", request).boost(2));
-            q.should(QueryBuilders.matchQuery("description", request));
+            q.should(QueryBuilders.matchQuery("title", pr.query).boost(8));
+            q.should(QueryBuilders.matchQuery("address_ext", pr.query).boost(4));
+            q.should(QueryBuilders.matchQuery("spec", pr.query).boost(2));
+            q.should(QueryBuilders.matchQuery("description", pr.query));
         }
 
 

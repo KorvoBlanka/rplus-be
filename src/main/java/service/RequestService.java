@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.CommonUtils;
 import utils.FilterObject;
+import utils.ParseResult;
 import utils.Query;
 
 import javax.persistence.EntityManager;
@@ -127,7 +128,8 @@ public class RequestService {
         String request = queryParts.get("req");
         String excl = queryParts.get("excl");
         String near = queryParts.get("near");
-        List<FilterObject> rangeFilters = Query.parse(request);
+        ParseResult pr = Query.parse(request);
+        List<FilterObject> rangeFilters = pr.filterList;
 
         SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
                 .setTypes("offer")
@@ -166,11 +168,11 @@ public class RequestService {
             }
         });
 
-        if (request != null && request.length() > 0) {
-            q.should(QueryBuilders.matchQuery("title", request).boost(8));
-            q.should(QueryBuilders.matchQuery("address_ext", request).boost(4));
-            q.should(QueryBuilders.matchQuery("spec", request).boost(2));
-            q.should(QueryBuilders.matchQuery("description", request));
+        if (pr.query != null && pr.query.length() > 0) {
+            q.should(QueryBuilders.matchQuery("title", pr.query).boost(8));
+            q.should(QueryBuilders.matchQuery("address_ext", pr.query).boost(4));
+            q.should(QueryBuilders.matchQuery("spec", pr.query).boost(2));
+            q.should(QueryBuilders.matchQuery("description", pr.query));
         }
 
         rb.setQuery(q);

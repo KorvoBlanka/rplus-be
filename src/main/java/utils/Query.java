@@ -19,7 +19,6 @@ public class Query {
 
     Logger logger = LoggerFactory.getLogger(OfferService.class);
 
-
     private static boolean regExTest (String regexp, String testString) {
 
         Pattern p = Pattern.compile(regexp);
@@ -28,10 +27,9 @@ public class Query {
 
     }
 
-    public static List<FilterObject> parse (String query) {
+    public static ParseResult parse (String query) {
 
-        List<FilterObject> filterList = new LinkedList<>();
-
+        ParseResult r = new ParseResult();
 
         // Some commonly used regexes
         String sta_re = "(?:^|\\s+|,\\s*)";
@@ -75,7 +73,7 @@ public class Query {
 
                     }
 
-                    m.replaceFirst("");
+                    query = m.replaceFirst("");
                 }
                 // Single value
                 else {
@@ -103,15 +101,15 @@ public class Query {
                             exactPrice = price;
                         }
                         //matched = true;
-                        m.replaceFirst("");
+                        query = m.replaceFirst("");
                     }
                 }
             } while (matched == true);
 
             if (price1 != null || price2 != null) {
-                filterList.add(new FilterObject("ownerPrice", price1, price2));
+                r.filterList.add(new FilterObject("ownerPrice", price1, price2));
             } else if (exactPrice != null) {
-                filterList.add(new FilterObject("ownerPrice", exactPrice));
+                r.filterList.add(new FilterObject("ownerPrice", exactPrice));
             }
         }
 
@@ -134,7 +132,7 @@ public class Query {
                     rooms_count1 = Integer.parseInt(m.group(1));
                     rooms_count2 = Integer.parseInt(m.group(2));
 
-                    m.replaceFirst("");
+                    query = m.replaceFirst("");
                 } else {
                     //single
                     p = Pattern.compile(
@@ -143,7 +141,8 @@ public class Query {
                     if (m.find()) {
                         rooms_count = Integer.parseInt(m.group(1));
 
-                        m.replaceFirst("");
+                        query = m.replaceFirst("");
+
                     } else {
                         // special case
                         p = Pattern.compile(
@@ -162,18 +161,16 @@ public class Query {
                             if (v.matches("восьми")) rooms_count = 8;
                             if (v.matches("девяти")) rooms_count = 9;
 
-                            m.replaceFirst("");
+                            query = m.replaceFirst("");
                         }
                     }
                 }
             } while (matched);
 
-            //$q = trim($q) if $matched;
-
             if (rooms_count1 != null || rooms_count2 != null) {
-                filterList.add(new FilterObject("roomsCount", rooms_count1, rooms_count2));
+                r.filterList.add(new FilterObject("roomsCount", rooms_count1, rooms_count2));
             } else if (rooms_count != null) {
-                filterList.add(new FilterObject("roomsCount", rooms_count));
+                r.filterList.add(new FilterObject("roomsCount", rooms_count));
             };
         }
 
@@ -196,7 +193,7 @@ public class Query {
                     floor1 = Integer.parseInt(m.group(1));
                     floor2 = Integer.parseInt(m.group(2));
 
-                    m.replaceFirst("");
+                    query = m.replaceFirst("");
                 } else {
                     // Single value
                     p = Pattern.compile(
@@ -215,15 +212,16 @@ public class Query {
                             exactFloor = Integer.parseInt(m.group(2));
                         }
 
-                        m.replaceFirst("");
+                        query = m.replaceFirst("");
+
                     }
                 }
             } while (matched);
 
             if (floor1 != null || floor2 != null) {
-                filterList.add(new FilterObject("floor", floor1, floor2));
+                r.filterList.add(new FilterObject("floor", floor1, floor2));
             } else if (exactFloor != null) {
-                filterList.add(new FilterObject("floor", exactFloor));
+                r.filterList.add(new FilterObject("floor", exactFloor));
             }
         }
 
@@ -246,7 +244,7 @@ public class Query {
                     square1 = Integer.parseInt(m.group(1));
                     square2 = Integer.parseInt(m.group(2));
 
-                    m.replaceFirst("");
+                    query = m.replaceFirst("");
                 } else {
                     // Single value
 
@@ -266,19 +264,21 @@ public class Query {
                             exactSquare = Integer.parseInt(m.group(2));
                         }
 
-                        m.replaceFirst("");
+                        query = m.replaceFirst("");
                     }
                 }
             } while (matched);
 
             if (square1 != null || square2 != null) {
-                filterList.add(new FilterObject("squareTotal", square1, square2));
+                r.filterList.add(new FilterObject("squareTotal", square1, square2));
             } else if (exactSquare != null) {
-                filterList.add(new FilterObject("squareTotal", exactSquare));
+                r.filterList.add(new FilterObject("squareTotal", exactSquare));
             }
         }
 
-        return filterList;
+        r.query = query;
+
+        return r;
     }
 
     public static Map<String, String> process (String query) {
