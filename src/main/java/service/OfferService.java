@@ -269,6 +269,13 @@ public class OfferService {
                 } else {
                     q.mustNot(QueryBuilders.termQuery(k, "archive"));
                 }
+            } else if (k.equals("agent")) {
+                if (v != null && !v.equals("all")) {
+                } else if (1 != 2) {
+
+                } else if (1 != 2) {
+
+                }
             } else {
                 if (v != null && !v.equals("all")) {
                     if (k.equals("changeDate")) {
@@ -299,7 +306,7 @@ public class OfferService {
         });
 
         if (pr.query != null && pr.query.length() > 2) {
-            
+
             q.must(QueryBuilders.matchQuery("tags", pr.query).operator(Operator.AND));
 
             q.should(QueryBuilders.matchQuery("title", pr.query).boost(8));
