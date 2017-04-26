@@ -138,7 +138,7 @@ public class Person {
     @Getter
     @Setter
     @ManyToOne
-    @JoinColumn(name = "organisation_id", foreignKey = @ForeignKey(name = "ORGANISATION_ID_FK"))
+    @JoinColumn(name = "organisation_n_id", foreignKey = @ForeignKey(name = "ORGANISATION_N_ID_FK"))
     private Organisation organisation_n;
 
     @Getter
