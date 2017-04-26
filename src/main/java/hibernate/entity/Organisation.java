@@ -48,6 +48,116 @@ public class Organisation {
     @Setter
     private Long accountId;
 
+    @Getter
+    @Setter
+    private String typeCode_n;
+
+    @Getter
+    @Setter
+    private String orgName_n;
+
+    @Getter
+    @Setter
+    private String region_n;
+    @Getter
+    @Setter
+    private String city_n;
+    @Getter
+    @Setter
+    private String area_n;
+    @Getter
+    @Setter
+    private String admArea_n;
+    @Getter
+    @Setter
+    private String street_n;
+    @Getter
+    @Setter
+    private String house_n;
+    @Getter
+    @Setter
+    private String housing_n;
+    @Getter
+    @Setter
+    private String apartment_n;
+
+    @Getter
+    @Setter
+    private String officePhone_n;
+    @Getter
+    @Setter
+    private String homePhone_n;
+    @Getter
+    @Setter
+    private String cellPhone_n;
+    @Getter
+    @Setter
+    private String fax_n;
+    @Getter
+    @Setter
+    private String mainPhone_n;
+    @Getter
+    @Setter
+    private String otherPhone_n;
+
+    @Getter
+    @Setter
+    private String workEmail_n;
+    @Getter
+    @Setter
+    private String mainEmail_n;
+
+    @Getter
+    @Setter
+    private String webSite_n;
+
+    @Getter
+    @Setter
+    private String inn_n;
+
+    @Getter
+    @Setter
+    private String kpp_n;
+
+    @Getter
+    @Setter
+    private String cor_n;
+
+    @Getter
+    @Setter
+    private String bic_n;
+
+    @Getter
+    @Setter
+    private String other_n;
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "head_id", foreignKey = @ForeignKey(name = "HEAD_ID_FK"))
+    private Person head_n;
+
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "contact_id", foreignKey = @ForeignKey(name = "CONTACT_ID_FK"))
+    private Person contact_n;
+
+
+    @Getter
+    @Setter
+    private String contract_n;
+
+    @Getter
+    @Setter
+    private String stateCode_n;
+
+    @Getter
+    @Setter
+    private String sourceCode_n;
+
+
     @PreUpdate
     @PrePersist
     void preInsert() {

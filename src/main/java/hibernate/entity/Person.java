@@ -71,6 +71,101 @@ public class Person {
     private Long accountId;
 
 
+    @Getter
+    @Setter
+    private String typeCode_n;
+
+    @Getter
+    @Setter
+    private String fullName_n;
+
+    @Getter
+    @Setter
+    private String region_n;
+    @Getter
+    @Setter
+    private String city_n;
+    @Getter
+    @Setter
+    private String area_n;
+    @Getter
+    @Setter
+    private String admArea_n;
+    @Getter
+    @Setter
+    private String street_n;
+    @Getter
+    @Setter
+    private String house_n;
+    @Getter
+    @Setter
+    private String housing_n;
+    @Getter
+    @Setter
+    private String apartment_n;
+
+
+    @Getter
+    @Setter
+    private String officePhone_n;
+    @Getter
+    @Setter
+    private String homePhone_n;
+    @Getter
+    @Setter
+    private String cellPhone_n;
+    @Getter
+    @Setter
+    private String fax_n;
+    @Getter
+    @Setter
+    private String mainPhone_n;
+    @Getter
+    @Setter
+    private String otherPhone_n;
+
+    @Getter
+    @Setter
+    private String workEmail_n;
+    @Getter
+    @Setter
+    private String mainEmail_n;
+
+    @Getter
+    @Setter
+    private String webSite_n;
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "organisation_id", foreignKey = @ForeignKey(name = "ORGANISATION_ID_FK"))
+    private Organisation organisation_n;
+
+    @Getter
+    @Setter
+    private String positionCode_n;
+
+
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "agent_id", foreignKey = @ForeignKey(name = "AGENT_ID_FK"))
+    private User agent_n;
+
+
+    @Getter
+    @Setter
+    private String contract_n;
+
+    @Getter
+    @Setter
+    private String stateCode_n;
+
+    @Getter
+    @Setter
+    private String sourceCode_n;
+
+
     @PreUpdate
     @PrePersist
     void preInsert() {
