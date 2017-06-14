@@ -380,6 +380,69 @@ public class Offer {
     private Float сeilingHeight_n;
 
 
+    @Getter
+    @Setter
+    private String contractStr_n;
+
+    // raitings
+    @Getter
+    @Setter
+    private String locRaiting0_n;
+    @Getter
+    @Setter
+    private String locRaiting1_n;
+    @Getter
+    @Setter
+    private String locRaiting2_n;
+    @Getter
+    @Setter
+    private String locRaiting3_n;
+    @Getter
+    @Setter
+    private String locRaiting4_n;
+    @Getter
+    @Setter
+    private String locRaiting5_n;
+    @Getter
+    @Setter
+    private String locRaiting6_n;
+    @Getter
+    @Setter
+    private String locRaiting7_n;
+    @Getter
+    @Setter
+    private String locRaiting8_n;
+
+    @Getter
+    @Setter
+    private String offerRaiting0_n;
+    @Getter
+    @Setter
+    private String offerRaiting1_n;
+    @Getter
+    @Setter
+    private String offerRaiting2_n;
+    @Getter
+    @Setter
+    private String offerRaiting3_n;
+    @Getter
+    @Setter
+    private String offerRaiting4_n;
+    @Getter
+    @Setter
+    private String offerRaiting5_n;
+    @Getter
+    @Setter
+    private String offerRaiting6_n;
+    @Getter
+    @Setter
+    private String offerRaiting7_n;
+    @Getter
+    @Setter
+    private String offerRaiting8_n;
+
+
+
     @PreUpdate
     @PrePersist
     void preInsert() {

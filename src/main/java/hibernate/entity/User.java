@@ -167,6 +167,10 @@ public class User {
     @Setter
     private String office_n;
 
+    @Getter
+    @Setter
+    private String info_n;
+
 
     @PreUpdate
     @PrePersist

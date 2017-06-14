@@ -63,6 +63,10 @@ public class Request {
     @Setter
     private Long accountId;
 
+    @Getter
+    @Setter
+    private String info_n;
+
 
     @PreUpdate
     @PrePersist

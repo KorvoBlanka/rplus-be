@@ -157,6 +157,12 @@ public class Organisation {
     @Setter
     private String sourceCode_n;
 
+    @Getter
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "agent_id", foreignKey = @ForeignKey(name = "AGENT_ID_FK"))
+    private User agent_n;
+
 
     @PreUpdate
     @PrePersist
