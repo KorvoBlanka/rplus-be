@@ -51,7 +51,7 @@ public class App {
         App.accountService = new AccountService(emf);
         App.userService = new UserService(emf);
         App.orgService = new OrganisationService(emf);
-        App.personService = new PersonService(emf);
+        App.personService = new PersonService(emf, ec);
         App.offerService = new OfferService(emf, ec);
         App.requestService = new RequestService(emf, ec);
         App.geoService = new GeoService();
@@ -87,7 +87,6 @@ public class App {
         TransportClient client = new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
 
         return client;
-
     }
 
 }

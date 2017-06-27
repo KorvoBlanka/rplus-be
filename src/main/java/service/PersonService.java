@@ -9,33 +9,45 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import hibernate.entity.Organisation;
+import hibernate.entity.Request;
 import hibernate.entity.User;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import hibernate.entity.Person;
-
+import utils.CommonUtils;
+import utils.FilterObject;
 
 
 public class PersonService {
 
     Logger logger = LoggerFactory.getLogger(PersonService.class);
     EntityManagerFactory emf;
+    private final Client elasticClient;
 
-
-    public PersonService (EntityManagerFactory emf) {
+    public PersonService (EntityManagerFactory emf, Client elasticClient) {
 
         this.emf = emf;
+        this.elasticClient = elasticClient;
     }
 
     public List<String> check (Person person) {
         List<String> errors = new LinkedList<>();
 
-        if ((person.getPhones() == null || person.getPhones().length == 0) && (person.getEmails() == null || person.getEmails().length == 0)) errors.add("no phones and no emails given");
+        //if ((person.getPhones() == null || person.getPhones().length == 0) && (person.getEmails() == null || person.getEmails().length == 0)) errors.add("no phones and no emails given");
 
         return errors;
     }
@@ -44,6 +56,7 @@ public class PersonService {
 
         logger.info("list");
 
+        /*
         List<Person> personList;
 
         EntityManager em = emf.createEntityManager();
@@ -70,6 +83,46 @@ public class PersonService {
 
         cq.select(personRoot).where(predicates.toArray(new Predicate[]{}));
         personList = em.createQuery(cq).getResultList();
+        */
+
+        List<Person> offerList = new ArrayList<>();
+
+        EntityManager em = emf.createEntityManager();
+
+        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+                .setTypes("person")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
+
+
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+        q.must(QueryBuilders.termQuery("accountId", accountId));
+        if (userId != null) {
+            q.must(QueryBuilders.termQuery("userId", userId));
+        }
+        if (organisationId != null) {
+            q.must(QueryBuilders.termQuery("organisationId", organisationId));
+        }
+
+
+        if (searchQuery != null && searchQuery.length() > 2) {
+
+            q.should(QueryBuilders.matchQuery("name", searchQuery));
+            q.should(QueryBuilders.matchQuery("phones", searchQuery));
+            q.should(QueryBuilders.matchQuery("emails", searchQuery));
+        }
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+        List<Person> personList = new ArrayList<>();
+
+        for (SearchHit sh: response.getHits()) {
+            Person person = em.find(hibernate.entity.Person.class, Long.parseLong(sh.getId()));
+            personList.add(person);
+        }
 
         return personList;
     }
@@ -100,10 +153,43 @@ public class PersonService {
         result = em.merge(person);
         em.getTransaction().commit();
 
-
         em.close();
 
+        indexPerson(result);
+
         return result;
+    }
+
+    public void indexPerson(Person person) {
+
+        Map<String, Object> json = new HashMap<String, Object>();
+
+        json.put("name", person.getName());
+
+        // filters
+        json.put("accountId", person.getAccountId());
+        json.put("agentId", person.getUserId());
+        json.put("organisationId", person.getOrganisation());
+
+        ArrayList<String> phoneArray = new ArrayList<>();
+        phoneArray.add(CommonUtils.strNotNull(person.getHomePhone_n()));
+        phoneArray.add(CommonUtils.strNotNull(person.getCellPhone_n()));
+        phoneArray.add(CommonUtils.strNotNull(person.getMainPhone_n()));
+        phoneArray.add(CommonUtils.strNotNull(person.getOtherPhone_n()));
+        phoneArray.add(CommonUtils.strNotNull(person.getOfficePhone_n()));
+
+        String phones = String.join(" ", phoneArray);
+        json.put("phones", phones);
+
+        ArrayList<String> mailArray = new ArrayList<>();
+        phoneArray.add(CommonUtils.strNotNull(person.getWorkEmail_n()));
+        phoneArray.add(CommonUtils.strNotNull(person.getMainEmail_n()));
+
+        String mails = String.join(" ", phoneArray);
+        json.put("emails", mails);
+
+
+        IndexResponse response = this.elasticClient.prepareIndex("rplus", "person", Long.toString(person.getId())).setSource(json).get();
     }
 
     public Person delete (long id) {
