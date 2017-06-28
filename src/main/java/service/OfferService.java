@@ -336,10 +336,11 @@ public class OfferService {
         ListResult r = new ListResult();
         r.hitsCount = response.getHits().getTotalHits();
 
-
         for (SearchHit sh: response.getHits()) {
             Offer offer = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
-            offerList.add(offer);
+            if (offer != null) {
+                offerList.add(offer);
+            }
         }
 
         r.list = offerList;
@@ -399,7 +400,9 @@ public class OfferService {
 
         for (SearchHit sh: response.getHits()) {
             Offer o = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
-            offerList.add(o);
+            if (o != null) {
+                offerList.add(o);
+            }
         }
 
         r.list = offerList;

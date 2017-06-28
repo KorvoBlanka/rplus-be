@@ -110,7 +110,9 @@ public class RequestService {
 
         for (SearchHit sh: response.getHits()) {
             Request request = em.find(hibernate.entity.Request.class, Long.parseLong(sh.getId()));
-            requestList.add(request);
+            if (request != null) {
+                requestList.add(request);
+            }
         }
 
         return requestList;

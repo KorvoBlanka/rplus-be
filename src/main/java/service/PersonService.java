@@ -121,7 +121,9 @@ public class PersonService {
 
         for (SearchHit sh: response.getHits()) {
             Person person = em.find(hibernate.entity.Person.class, Long.parseLong(sh.getId()));
-            personList.add(person);
+            if (person != null) {
+                personList.add(person);
+            }
         }
 
         return personList;
