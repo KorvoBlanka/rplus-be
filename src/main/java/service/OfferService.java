@@ -34,6 +34,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -150,7 +151,9 @@ public class OfferService {
         dRoomScheme.put(6, "Студия");
     }
 
-    public ListResult listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
+    public ListResult listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon)
+    throws UnsupportedEncodingException
+    {
         List<Offer> offerList = new ArrayList<>();
         Long hitsCount = 0L;
         ListResult r = new ListResult();
@@ -159,7 +162,7 @@ public class OfferService {
         this.logger.info("list import");
 
         String url = AppConfig.IMPORT_URL + "/api/offer/search?"
-        + "query=" + URLEncoder.encode(searchQuery)
+        + "query=" + URLEncoder.encode(searchQuery, "UTF-8")
         + "&offer_type=" + filter.get("offerTypeCode")
         + "&page=" + page
         + "&per_page=" + perPage
@@ -466,7 +469,10 @@ public class OfferService {
 
         String title = dTypeCode.get(offer.getTypeCode());
 
-        String address = CommonUtils.strNotNull(offer.getLocality()) + " " + CommonUtils.strNotNull(offer.getAddress()) + " " + CommonUtils.strNotNull(offer.getHouseNum());
+        String address = CommonUtils.strNotNull(offer.getLocality()) +
+            " " + CommonUtils.strNotNull(offer.getAddress()) +
+            " " + CommonUtils.strNotNull(offer.getHouseNum());
+
         if (offer.getDistrict() != null) {
             address += " " + offer.getDistrict();
         }

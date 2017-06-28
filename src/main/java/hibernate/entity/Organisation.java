@@ -131,6 +131,7 @@ public class Organisation {
     @Setter
     private String other_n;
 
+    /*
     @Getter
     @Setter
     @ManyToOne
@@ -143,7 +144,7 @@ public class Organisation {
     @ManyToOne
     @JoinColumn(name = "contact_id", foreignKey = @ForeignKey(name = "CONTACT_ID_FK"))
     private Person contact_n;
-
+    */
 
     @Getter
     @Setter
