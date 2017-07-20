@@ -273,7 +273,7 @@ public class OfferService {
             } else if (k.equals("orgType")) {
                 if (v != null && !v.equals("all")) {
                     if (StringUtils.isNumeric(v)) {
-                        q.must(QueryBuilders.termQuery("agenId", v));
+                        q.must(QueryBuilders.termQuery("agentId", v));
                     } else {
                         q.must(QueryBuilders.termQuery(k, v));
                     }
