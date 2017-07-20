@@ -6,6 +6,7 @@ import configuration.AppConfig;
 import hibernate.entity.*;
 
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -271,7 +272,11 @@ public class OfferService {
                 }
             } else if (k.equals("orgType")) {
                 if (v != null && !v.equals("all")) {
-                    q.must(QueryBuilders.termQuery(k, v));
+                    if (StringUtils.isNumeric(v)) {
+                        q.must(QueryBuilders.termQuery("agenId", v));
+                    } else {
+                        q.must(QueryBuilders.termQuery(k, v));
+                    }
                 }
                 /*
                 switch (v) {
