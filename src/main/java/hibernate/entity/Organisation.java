@@ -148,6 +148,14 @@ public class Organisation {
 
     @Getter
     @Setter
+    private Long head_id_n;
+
+    @Getter
+    @Setter
+    private Long contact_id_n;
+
+    @Getter
+    @Setter
     private String contract_n;
 
     @Getter

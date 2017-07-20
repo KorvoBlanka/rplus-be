@@ -3,10 +3,7 @@ package service;
 import com.google.gson.*;
 
 import configuration.AppConfig;
-import hibernate.entity.ImportOffer;
-import hibernate.entity.Offer;
-import hibernate.entity.Person;
-import hibernate.entity.User;
+import hibernate.entity.*;
 
 import lombok.Setter;
 import org.elasticsearch.action.index.IndexResponse;
@@ -272,13 +269,28 @@ public class OfferService {
                 } else {
                     q.mustNot(QueryBuilders.termQuery(k, "archive"));
                 }
-            } else if (k.equals("agent")) {
+            } else if (k.equals("orgType")) {
                 if (v != null && !v.equals("all")) {
-                } else if (1 != 2) {
-
-                } else if (1 != 2) {
-
+                    q.must(QueryBuilders.termQuery(k, v));
                 }
+                /*
+                switch (v) {
+                    case "realtor":
+                        // выбрать все организации
+                        // выбрать всех агентов
+                        // выбрать все предложения агентов
+                        break;
+                    case "private":
+                        break;
+                    case "partner":
+                        break;
+                    case "company":
+                        break;
+                    case "my":
+
+                        break;
+                }
+                */
             } else {
                 if (v != null && !v.equals("all")) {
                     if (k.equals("changeDate")) {
@@ -316,6 +328,7 @@ public class OfferService {
             q.should(QueryBuilders.matchQuery("address_ext", pr.query).boost(4));
             q.should(QueryBuilders.matchQuery("spec", pr.query).boost(2));
             q.should(QueryBuilders.matchQuery("description", pr.query));
+            q.should(QueryBuilders.matchQuery("orgName", pr.query));
         }
 
 
@@ -540,6 +553,18 @@ public class OfferService {
         }
         if (offer.getPerson() != null) {
             json.put("contactName", offer.getPerson().getName());
+            if (offer.getPerson().getOrganisationId() != null) {
+
+                EntityManager em = emf.createEntityManager();
+                Organisation org = em.find(hibernate.entity.Organisation.class, offer.getPerson().getOrganisationId());
+                json.put("orgName", org.getName());
+                json.put("orgType", org.getTypeCode_n());
+                em.close();
+
+            } else {
+                json.put("orgName", offer.getPerson().getName());
+                json.put("orgType", "private");
+            }
         }
 
         IndexResponse response = this.elasticClient.prepareIndex("rplus", "offer", Long.toString(offer.getId())).setSource(json).get();

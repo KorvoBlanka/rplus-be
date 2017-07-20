@@ -519,6 +519,7 @@ public class Offer {
         o.person = new Person();
         o.person.setPhones(io.owner_phones);
         o.person.setName(io.mediator_company);
+        //o.person.setAccountId(); ???
 
         o.locationLat = io.location_lat;
         o.locationLon = io.location_lon;
