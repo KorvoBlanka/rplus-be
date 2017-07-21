@@ -1,5 +1,51 @@
-curl -XPUT 'localhost:9200/rplus-import' -H 'Content-Type: application/json' -d'
+POST rplus/_close
+
+
+PUT rplus/_settings
 {
+    "settings": {
+        "index" : {
+            "analysis" : {
+                "filter" : {
+                    "synonym" : {
+                        "type" : "synonym",
+                        "synonyms_path" : "synonym",
+                        "tokenizer" : "whitespace"
+                    }
+                },
+                "analyzer" : {
+                    "synonym" : {
+                        "tokenizer" : "whitespace",
+                        "filter" : ["synonym"]
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
+{
+    "settings": {
+        "index" : {
+            "analysis" : {
+                "filter" : {
+                    "synonym" : {
+                        "type" : "synonym",
+                        "synonyms_path" : "synonym",
+                        "tokenizer" : "whitespace"
+                    }
+                },
+                "analyzer" : {
+                    "synonym" : {
+                        "tokenizer" : "whitespace",
+                        "filter" : ["synonym"]
+                    }
+                }
+            }
+        }
+    },
     "mappings": {
         "offer": {
             "properties": {
@@ -9,6 +55,7 @@ curl -XPUT 'localhost:9200/rplus-import' -H 'Content-Type: application/json' -d'
 
                 "locality": {
                     "type": "text",
+                    "analyzer": "synonym",
                     "fielddata": true,
                     "fields": {
                        "keyword": {
@@ -19,6 +66,7 @@ curl -XPUT 'localhost:9200/rplus-import' -H 'Content-Type: application/json' -d'
                 },
                 "address": {
                     "type": "text",
+                    "analyzer": "synonym",
                     "fielddata": true,
                     "fields": {
                        "keyword": {
@@ -29,6 +77,7 @@ curl -XPUT 'localhost:9200/rplus-import' -H 'Content-Type: application/json' -d'
                 },
                 "district": {
                     "type": "text",
+                    "analyzer": "synonym",
                     "fielddata": true,
                     "fields": {
                        "keyword": {
@@ -39,6 +88,7 @@ curl -XPUT 'localhost:9200/rplus-import' -H 'Content-Type: application/json' -d'
                 },
                 "poi": {
                     "type": "text",
+                    "analyzer": "synonym",
                     "fielddata": true,
                     "fields": {
                        "keyword": {

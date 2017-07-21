@@ -7,6 +7,7 @@ app_config
 /target/
 /elastic/**
 !/elastic/mapping
+!/elastic/synonym
 
 # User-specific stuff:
 .idea/workspace.xml
