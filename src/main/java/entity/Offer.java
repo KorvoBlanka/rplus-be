@@ -1,26 +1,27 @@
-package hibernate.entity;
+package entity;
 /**
  * Created by Aleksandr on 09.11.16.
  */
 
+import auxclass.FullAddress;
+import auxclass.ImportOffer;
+import auxclass.Rating;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.*;
 
 
 
 import static utils.CommonUtils.getUnixTimestamp;
 
 
-@Entity
 public class Offer {
 
-    @Id
-    @GeneratedValue
     @Getter
     @Setter
     private Long id;
+    @Getter
+    @Setter
+    private Long accountId;
 
     @Getter
     @Setter
@@ -32,23 +33,7 @@ public class Offer {
 
     @Getter
     @Setter
-    private String typeCode;
-    @Getter
-    @Setter
-    private String offerTypeCode;
-
-    @Getter
-    @Setter
-    private String locality;
-    @Getter
-    @Setter
-    private String address;
-    @Getter
-    @Setter
-    private String houseNum;
-    @Getter
-    @Setter
-    private String apNum;
+    FullAddress fullAddress;
 
     @Getter
     @Setter
@@ -78,33 +63,7 @@ public class Offer {
 
     @Getter
     @Setter
-    private Integer roomsCount;
-    @Getter
-    @Setter
     private Integer roomsOfferCount;
-
-    @Getter
-    @Setter
-    private Integer floor;
-    @Getter
-    @Setter
-    private Integer floorsCount;
-    @Getter
-    @Setter
-    private Integer levelsCount;
-
-    @Getter
-    @Setter
-    private Float squareTotal;
-    @Getter
-    @Setter
-    private Float squareLiving;
-    @Getter
-    @Setter
-    private Float squareKitchen;
-    @Getter
-    @Setter
-    private Float squareLand;
 
     @Getter
     @Setter
@@ -118,11 +77,10 @@ public class Offer {
 
     @Getter
     @Setter
-    @Column(columnDefinition="TEXT")
     private String workInfo;
+
     @Getter
     @Setter
-    @Column(columnDefinition="TEXT")
     private String description;
     @Getter
     @Setter
@@ -132,7 +90,6 @@ public class Offer {
     private String sourceUrl;
     @Getter
     @Setter
-    @Column(columnDefinition="TEXT")
     private String sourceMediaText;
 
     @Getter
@@ -169,8 +126,6 @@ public class Offer {
 
     @Getter
     @Setter
-    @ManyToOne
-    @JoinColumn(name = "agent_id", foreignKey = @ForeignKey(name = "AGENT_ID_FK"))
     private User agent;
 
 
@@ -180,8 +135,6 @@ public class Offer {
 
     @Getter
     @Setter
-    @ManyToOne
-    @JoinColumn(name = "person_id", foreignKey = @ForeignKey(name = "PERSON_ID_FK"))
     private Person person;
 
     @Getter
@@ -194,267 +147,179 @@ public class Offer {
 
     @Getter
     @Setter
-    @Column(columnDefinition="BLOB")
     public String[] photoUrl;
-
-    // tags
-
-    @Getter
-    @Setter
-    private Long accountId;
 
 
     // new stuff
-    @Getter
-    @Setter
-    private String  stageCode_n;
 
     @Getter
     @Setter
-    private String  sourceCode_n;
+    private String  sourceCode;
 
     @Getter
     @Setter
-    private String sourceUrl_n;
+    private String offerTypeCode;
 
     @Getter
     @Setter
-    private String offerTypeCode_n;
+    private String typeCode;
 
     @Getter
     @Setter
-    private String typeCode_n;
+    private String settlement;
 
     @Getter
     @Setter
-    private String region_n;
-    @Getter
-    @Setter
-    private String city_n;
-    @Getter
-    @Setter
-    private String area_n;
-    @Getter
-    @Setter
-    private String admArea_n;
-    @Getter
-    @Setter
-    private String street_n;
-    @Getter
-    @Setter
-    private String house_n;
-    @Getter
-    @Setter
-    private String housing_n;
-    @Getter
-    @Setter
-    private String apartment_n;
+    private Boolean newBuilding;
 
     @Getter
     @Setter
-    private String settlement_n;
+    private String objectStage;
 
     @Getter
     @Setter
-    private Boolean newBuilding_n;
+    private String buildYear;
 
     @Getter
     @Setter
-    private String objectStage_n;
+    private String houseType;
+    @Getter
+    @Setter
+    private String houseMaterial;
+    @Getter
+    @Setter
+    private Integer roomsCount;
 
     @Getter
     @Setter
-    private String buildYear_n;
+    private String roomsType;
 
     @Getter
     @Setter
-    private String houseType_n;
+    private Integer floor;
     @Getter
     @Setter
-    private String houseMaterial_n;
+    private Integer floorsCount;
     @Getter
     @Setter
-    private Integer roomsCount_n;
+    private Integer levelsCount;
 
     @Getter
     @Setter
-    private String roomsType_n;
+    private Float squareTotal;
+    @Getter
+    @Setter
+    private Float squareLiving;
+    @Getter
+    @Setter
+    private Float squareKitchen;
+    @Getter
+    @Setter
+    private Float squareLand;
+    @Getter
+    @Setter
+    private Float squareLandType;
 
     @Getter
     @Setter
-    private Integer floor_n;
+    private Boolean balcony;
     @Getter
     @Setter
-    private Integer floorsCount_n;
-    @Getter
-    @Setter
-    private Integer levelsCount_n;
+    private Boolean loggia;
 
     @Getter
     @Setter
-    private Float squareTotal_n;
-    @Getter
-    @Setter
-    private Float squareLiving_n;
-    @Getter
-    @Setter
-    private Float squareKitchen_n;
-    @Getter
-    @Setter
-    private Float squareLand_n;
-    @Getter
-    @Setter
-    private Float squareLandType_n;
+    private String bathroom;
 
     @Getter
     @Setter
-    private Boolean balcony_n;
-    @Getter
-    @Setter
-    private Boolean loggia_n;
+    private String condition;
 
     @Getter
     @Setter
-    private String bathroom_n;
+    private Float price;
+    @Getter
+    @Setter
+    private Float comission;
+    @Getter
+    @Setter
+    private Float comissionPerc;
 
     @Getter
     @Setter
-    private String condition_n;
+    private Float distance;
 
     @Getter
     @Setter
-    private Float price_n;
-    @Getter
-    @Setter
-    private Float comission_n;
-    @Getter
-    @Setter
-    private Float comissionPerc_n;
+    private Boolean guard;
 
     @Getter
     @Setter
-    private Float distance_n;
+    private Boolean waterSupply;
 
     @Getter
     @Setter
-    private Boolean guard_n;
+    private Boolean gasification;
+    @Getter
+    @Setter
+    private Boolean electrification;
+    @Getter
+    @Setter
+    private Boolean sewerage;
+    @Getter
+    @Setter
+    private Boolean centralHeating;
+    @Getter
+    @Setter
+    private Boolean lift;
+    @Getter
+    @Setter
+    private Boolean parking;
 
     @Getter
     @Setter
-    private Boolean waterSupply_n;
+    private String landPurpose;
+    @Getter
+    @Setter
+    private String objectName;
+    @Getter
+    @Setter
+    private String buildingType;
+    @Getter
+    @Setter
+    private String buildingClass;
 
     @Getter
     @Setter
-    private Boolean gasification_n;
-    @Getter
-    @Setter
-    private Boolean electrification_n;
-    @Getter
-    @Setter
-    private Boolean sewerage_n;
-    @Getter
-    @Setter
-    private Boolean centralHeating_n;
-    @Getter
-    @Setter
-    private Boolean lift_n;
-    @Getter
-    @Setter
-    private Boolean parking_n;
-
-    @Getter
-    @Setter
-    private String landPurpose_n;
-    @Getter
-    @Setter
-    private String objectName_n;
-    @Getter
-    @Setter
-    private String buildingType_n;
-    @Getter
-    @Setter
-    private String buildingClass_n;
-
-    @Getter
-    @Setter
-    private Float сeilingHeight_n;
+    private Float сeilingHeight;
 
 
     @Getter
     @Setter
-    private String contractStr_n;
+    private String contractStr;
 
-    // raitings
+    // ratings
     @Getter
     @Setter
-    private String locRaiting0_n;
-    @Getter
-    @Setter
-    private String locRaiting1_n;
-    @Getter
-    @Setter
-    private String locRaiting2_n;
-    @Getter
-    @Setter
-    private String locRaiting3_n;
-    @Getter
-    @Setter
-    private String locRaiting4_n;
-    @Getter
-    @Setter
-    private String locRaiting5_n;
-    @Getter
-    @Setter
-    private String locRaiting6_n;
-    @Getter
-    @Setter
-    private String locRaiting7_n;
-    @Getter
-    @Setter
-    private String locRaiting8_n;
+    private Rating locRating;
 
     @Getter
     @Setter
-    private String offerRaiting0_n;
+    private Rating offerRaiting;
+
     @Getter
     @Setter
-    private String offerRaiting1_n;
-    @Getter
-    @Setter
-    private String offerRaiting2_n;
-    @Getter
-    @Setter
-    private String offerRaiting3_n;
-    @Getter
-    @Setter
-    private String offerRaiting4_n;
-    @Getter
-    @Setter
-    private String offerRaiting5_n;
-    @Getter
-    @Setter
-    private String offerRaiting6_n;
-    @Getter
-    @Setter
-    private String offerRaiting7_n;
-    @Getter
-    @Setter
-    private String offerRaiting8_n;
+    private String tag;
 
 
-
-    @PreUpdate
-    @PrePersist
-    void preInsert() {
-
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("rplus-be-dev.jpa.hibernate");
-        EntityManager em = emf.createEntityManager();
+    void preIndex() {
 
         if (getId() == null) {
             setAddDate(getUnixTimestamp());
         }
         setChangeDate(getUnixTimestamp());
 
+        /*
         if (this.getPersonId() != null) {
             Person p = em.find(Person.class, this.getPersonId());
             this.setPerson(p);
@@ -464,6 +329,7 @@ public class Offer {
             User agent = em.find(User.class, this.getAgentId());
             this.setAgent(agent);
         }
+        */
     }
 
     public static Offer fromImportOffer(ImportOffer io) {
@@ -474,10 +340,11 @@ public class Offer {
 
         o.offerTypeCode = io.offer_type_code;
 
-        o.locality = io.locality;
-        o.address = io.address;
-        o.houseNum = io.house_num;
-        o.apNum = io.ap_num;
+        o.fullAddress = new FullAddress();
+        o.fullAddress.setCity(io.locality);
+        o.fullAddress.setStreet(io.address);
+        o.fullAddress.setHouse(io.house_num);
+        o.fullAddress.setApartment(io.ap_num);
 
         o.district = "";
         o.poi = "";
@@ -517,8 +384,8 @@ public class Offer {
         o.photoUrl = io.photo_url;
 
         o.person = new Person();
-        o.person.setPhones(io.owner_phones);
-        o.person.setName(io.mediator_company);
+        //o.person.setPhones(io.owner_phones);
+        //o.person.setName(io.mediator_company);
         //o.person.setAccountId(); ???
 
         o.locationLat = io.location_lat;

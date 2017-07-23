@@ -12,6 +12,8 @@ import java.util.*;
  */
 public class AppConfig {
 
+    public static String VERSION = "b0.1";
+
     public static List<String> CORS_WHITELIST = new LinkedList<>();
     public static List<String> KEY_LIST = new LinkedList<>();
     public static String IMPORT_URL = "import.rplusmgmt.com:19050";

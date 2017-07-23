@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import configuration.AppConfig;
 import service.OfferService;
-import hibernate.entity.Offer;
+import entity.Offer;
 import utils.CommonUtils;
 
 

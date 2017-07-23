@@ -1,59 +1,85 @@
 package service;
 
-import hibernate.entity.Account;
+import com.google.gson.Gson;
+import entity.Account;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+
+import utils.CommonUtils;
+
 
 /**
  * Created by Aleksandr on 20.01.17.
  */
 public class AccountService {
 
+    private final String E_INDEX = "rplus";
+    private final String E_TYPE = "account";
+    private final String E_DATAFIELD = "data";
+
     Logger logger = LoggerFactory.getLogger(UserService.class);
-    EntityManagerFactory emf;
+    private final Client elasticClient;
+    Gson gson = new Gson();
 
-    public AccountService (EntityManagerFactory emf) {
+    public AccountService (Client elasticClient) {
 
-        this.emf = emf;
+        this.elasticClient = elasticClient;
     }
 
-    public List<Account> list (String searchQuery) {
+    public List<Account> list (int page, int perPage, String searchQuery) {
 
         this.logger.info("list");
 
-        List<Account> accountList;
+        List<Account> accountList = new ArrayList<>();
 
-        EntityManager em = emf.createEntityManager();
 
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Account> cq = cb.createQuery(Account.class);
-        Root<Account> accRoot = cq.from(Account.class);
-        cq.select(accRoot);
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
 
-        accountList = em.createQuery(cq).getResultList();
 
-        em.close();
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+
+        if (searchQuery != null && searchQuery.length() > 0) {
+
+            q.should(QueryBuilders.matchQuery("name", searchQuery));
+            q.should(QueryBuilders.matchQuery("location", searchQuery));
+        }
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+        for (SearchHit sh: response.getHits()) {
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            accountList.add(gson.fromJson(dataJson, Account.class));
+        }
 
         return accountList;
     }
 
     public Account get (long id) {
-
         this.logger.info("get");
 
-        EntityManager em = emf.createEntityManager();
+        Account result = null;
 
-        Account result = em.find(Account.class, id);
+        GetResponse response = this.elasticClient.prepareGet(E_INDEX, E_TYPE, Long.toString(id)).get();
 
-        em.close();
+        String dataJson = response.getSourceAsMap().get(E_DATAFIELD).toString();
+        result = gson.fromJson(dataJson, Account.class);
 
         return result;
     }
@@ -61,17 +87,26 @@ public class AccountService {
     public Account getByName(String name) {
         this.logger.info("get by name");
 
-        EntityManager em = emf.createEntityManager();
-
         Account result = null;
 
-        List<Account> l = em.createQuery("FROM Account WHERE name = :name", Account.class).setParameter("name", name).getResultList();
 
-        if (l.size() > 0) {
-            result = l.get(0);
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+
+
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+        q.must(QueryBuilders.matchQuery("name", name));
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+        if (response.getHits().getTotalHits() > 0) {
+            String dataJson = response.getHits().getAt(0).getSourceAsMap().get("data").toString();
+            result = gson.fromJson(dataJson, Account.class);
         }
-
-        em.close();
 
         return result;
     }
@@ -80,21 +115,30 @@ public class AccountService {
 
         this.logger.info("save");
 
-        EntityManager em = emf.createEntityManager();
+        indexAccount(account);
 
-        Account result;
-
-        em.getTransaction().begin();
-        result = em.merge(account);
-        em.getTransaction().commit();
-
-        em.close();
-
-        return result;
+        return account;
     }
 
     public Account delete (long id) {
         return null;
     }
 
+
+    public void indexAccount(Account account) {
+
+        Map<String, Object> json = new HashMap<String, Object>();
+
+        if (account.getId() == null) {
+            account.setId(CommonUtils.getSystemTimestamp());
+        }
+
+        json.put("id", account.getId());
+        json.put("name", account.getName());
+        json.put("location", account.getLocation());
+
+        json.put(E_DATAFIELD, gson.toJson(account));
+
+        IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(account.getId())).setSource(json).get();
+    }
 }

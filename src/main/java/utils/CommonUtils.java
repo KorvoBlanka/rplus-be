@@ -32,6 +32,9 @@ public class CommonUtils {
         return System.currentTimeMillis() / 1000L;
     }
 
+    public static long getSystemTimestamp() {
+        return System.currentTimeMillis();
+    }
 
     public static Map<String, String> JsonToMap(String json) {
         Gson gson = new Gson();

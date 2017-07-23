@@ -1,16 +1,7 @@
-package hibernate.entity;
+package auxclass;
 /**
  * Created by Aleksandr on 09.11.16.
  */
-
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.*;
-
-import java.util.Map;
-
-import static utils.CommonUtils.getUnixTimestamp;
 
 
 public class ImportOffer {

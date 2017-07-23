@@ -1,30 +1,37 @@
 package service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import com.google.gson.Gson;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import hibernate.entity.User;
-
+import entity.User;
+import utils.CommonUtils;
 
 
 public class UserService {
 
+    private final String E_INDEX = "rplus";
+    private final String E_TYPE = "user";
+    private final String E_DATAFIELD = "data";
+
     Logger logger = LoggerFactory.getLogger(UserService.class);
-    EntityManagerFactory emf;
+    private final Client elasticClient;
+    Gson gson = new Gson();
 
-    public UserService (EntityManagerFactory emf) {
+    public UserService (Client elasticClient) {
 
-        this.emf = emf;
+        this.elasticClient = elasticClient;
     }
 
     public List<String> check (User user) {
@@ -34,46 +41,49 @@ public class UserService {
         if (user.getLogin() == null || user.getLogin().length() < 4) errors.add("login is null or too short");
         if (user.getPassword() == null || user.getPassword().length() < 4) errors.add("password is null or too short");
         if (user.getRole() == null) {
-            errors.add("unknown role ");
+            errors.add("empty role ");
         }
 
         return errors;
     }
 
-    public List<User> list (Integer accountId, User.Role role, Integer superiorId, String searchQuery) {
+    public List<User> list (long accountId, int page, int perPage, String role, Long superiorId, String searchQuery) {
 
         this.logger.info("list");
 
-        List<User> userList;
+        List<User> userList = new ArrayList<>();
 
-        EntityManager em = emf.createEntityManager();
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
 
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<User> cq = cb.createQuery(User.class);
-        Root<User> userRoot = cq.from(User.class);
 
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
 
-        List<Predicate> predicates = new ArrayList<Predicate>();
-
-        if (accountId != null) {
-            predicates.add(cb.equal(userRoot.get("accountId"), accountId));
-            //cq = cq.where();
-        }
-
-        if (role != null) {
-            predicates.add(cb.equal(userRoot.get("role"), role));
-        }
-
+        q.must(QueryBuilders.termQuery("accountId", accountId));
         if (superiorId != null) {
-            predicates.add(cb.equal(userRoot.get("superiorId"), superiorId));
+            q.must(QueryBuilders.termQuery("superiorId", superiorId));
+        }
+        if (role != null) {
+            q.must(QueryBuilders.termQuery("role", role));
         }
 
-        cq.select(userRoot)
-                .where(predicates.toArray(new Predicate[]{}));
+        if (searchQuery != null && searchQuery.length() > 0) {
 
-        userList = em.createQuery(cq).getResultList();
+            q.should(QueryBuilders.matchQuery("name", searchQuery));
+            //
+        }
 
-        em.close();
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+
+        for (SearchHit sh: response.getHits()) {
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            userList.add(gson.fromJson(dataJson, User.class));
+        }
 
         return userList;
     }
@@ -82,30 +92,39 @@ public class UserService {
 
         this.logger.info("get");
 
-        EntityManager em = emf.createEntityManager();
+        User result = null;
 
-        User result = em.find(User.class, id);
-
-        em.close();
+        GetResponse response = this.elasticClient.prepareGet(E_INDEX, E_TYPE, Long.toString(id)).get();
+        String dataJson = response.getSourceAsMap().get(E_DATAFIELD).toString();
+        result = gson.fromJson(dataJson, User.class);
 
         return result;
     }
 
-    public User getByLogin (Long accountId, String login) {
+    public User getByLogin (long accountId, String login) {
 
         this.logger.info("get by login");
 
-        EntityManager em = emf.createEntityManager();
-
         User result = null;
 
-        List<User> l = em.createQuery("FROM User WHERE accountId = :accountId AND login = :login", User.class).setParameter("accountId", accountId).setParameter("login", login).getResultList();
 
-        if (l.size() > 0) {
-            result = l.get(0);
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+
+
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
+
+        q.must(QueryBuilders.matchQuery("login", login));
+
+        rb.setQuery(q);
+
+        SearchResponse response = rb.execute().actionGet();
+
+        if (response.getHits().getTotalHits() > 0) {
+            String dataJson = response.getHits().getAt(0).getSourceAsMap().get(E_DATAFIELD).toString();
+            result = gson.fromJson(dataJson, User.class);
         }
-
-        em.close();
 
         return result;
     }
@@ -114,20 +133,34 @@ public class UserService {
 
         this.logger.info("save");
 
-        EntityManager em = emf.createEntityManager();
+        indexUser(user);
 
-        User result;
-
-        em.getTransaction().begin();
-        result = em.merge(user);
-        em.getTransaction().commit();
-
-        em.close();
-
-        return result;
+        return user;
     }
 
     public User delete (long id) {
         return null;
+    }
+
+
+    public void indexUser(User user) {
+
+        Map<String, Object> json = new HashMap<>();
+
+        if (user.getId() == null) {
+            user.setId(CommonUtils.getSystemTimestamp());
+        }
+
+
+        json.put("id", user.getId());
+        json.put("accountId", user.getAccountId());
+
+        json.put("login", user.getLogin());
+
+
+        json.put(E_DATAFIELD, gson.toJson(user));
+
+
+        IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(user.getId())).setSource(json).get();
     }
 }

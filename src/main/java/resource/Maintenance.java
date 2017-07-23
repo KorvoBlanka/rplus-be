@@ -17,11 +17,9 @@ import service.PersonService;
 import service.UserService;
 import service.OfferService;
 
-import utils.CommonUtils;
-
-import hibernate.entity.Person;
-import hibernate.entity.User;
-import hibernate.entity.Offer;
+import entity.Person;
+import entity.User;
+import entity.Offer;
 
 
 public class Maintenance {

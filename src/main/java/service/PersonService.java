@@ -1,46 +1,36 @@
 package service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
-import hibernate.entity.Organisation;
-import hibernate.entity.Request;
-import hibernate.entity.User;
+import com.google.gson.Gson;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import hibernate.entity.Person;
+import entity.Person;
 import utils.CommonUtils;
-import utils.FilterObject;
 
 
 public class PersonService {
 
+    private final String E_INDEX = "rplus";
+    private final String E_TYPE = "person";
+    private final String E_DATAFIELD = "data";
+
     Logger logger = LoggerFactory.getLogger(PersonService.class);
-    EntityManagerFactory emf;
     private final Client elasticClient;
+    Gson gson = new Gson();
 
-    public PersonService (EntityManagerFactory emf, Client elasticClient) {
+    public PersonService (Client elasticClient) {
 
-        this.emf = emf;
         this.elasticClient = elasticClient;
     }
 
@@ -52,45 +42,15 @@ public class PersonService {
         return errors;
     }
 
-    public List<Person> list (Long accountId, int page, int perPage, Integer userId, Integer organisationId, String searchQuery) {
+    public List<Person> list (Long accountId, int page, int perPage, Long userId, Long organisationId, String searchQuery) {
 
         logger.info("list");
 
-        /*
-        List<Person> personList;
 
-        EntityManager em = emf.createEntityManager();
+        List<Person> personList = new ArrayList<>();
 
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Person> cq = cb.createQuery(Person.class);
-        Root<Person> personRoot = cq.from(Person.class);
-
-
-
-        List<Predicate> predicates = new ArrayList<Predicate>();
-
-        if (accountId != null) {
-            predicates.add(cb.equal(personRoot.get("accountId"), accountId));
-        }
-
-        if (userId != null) {
-            predicates.add(cb.equal(personRoot.get("userId"), userId));
-        }
-
-        if (organisationId != null) {
-            predicates.add(cb.equal(personRoot.get("organisationId"), organisationId));
-        }
-
-        cq.select(personRoot).where(predicates.toArray(new Predicate[]{}));
-        personList = em.createQuery(cq).getResultList();
-        */
-
-        List<Person> offerList = new ArrayList<>();
-
-        EntityManager em = emf.createEntityManager();
-
-        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
-                .setTypes("person")
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setFrom(page * perPage).setSize(perPage);
 
@@ -117,13 +77,9 @@ public class PersonService {
 
         SearchResponse response = rb.execute().actionGet();
 
-        List<Person> personList = new ArrayList<>();
-
         for (SearchHit sh: response.getHits()) {
-            Person person = em.find(hibernate.entity.Person.class, Long.parseLong(sh.getId()));
-            if (person != null) {
-                personList.add(person);
-            }
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            personList.add(gson.fromJson(dataJson, Person.class));
         }
 
         return personList;
@@ -133,12 +89,11 @@ public class PersonService {
 
         this.logger.info("get");
 
-        EntityManager em = emf.createEntityManager();
+        Person result = null;
 
-        Person result = em.find(Person.class, id);
-
-
-        em.close();
+        GetResponse response = this.elasticClient.prepareGet(E_INDEX, E_TYPE, Long.toString(id)).get();
+        String dataJson = response.getSourceAsMap().get(E_DATAFIELD).toString();
+        result = gson.fromJson(dataJson, Person.class);
 
         return result;
     }
@@ -147,54 +102,42 @@ public class PersonService {
 
         this.logger.info("save");
 
-        EntityManager em = emf.createEntityManager();
+        indexPerson(person);
 
-        Person result;
-
-        em.getTransaction().begin();
-        result = em.merge(person);
-        em.getTransaction().commit();
-
-        em.close();
-
-        indexPerson(result);
-
-        return result;
+        return person;
     }
+
+    public Person delete (long id) {
+        return null;
+    }
+
 
     public void indexPerson(Person person) {
 
         Map<String, Object> json = new HashMap<String, Object>();
 
+        if (person.getId() == null) {
+            person.setId(CommonUtils.getSystemTimestamp());
+        }
+
+        json.put("id", person.getId());
+        json.put("accountId", person.getAccountId());
         json.put("name", person.getName());
 
         // filters
-        json.put("accountId", person.getAccountId());
         json.put("agentId", person.getUserId());
-        json.put("organisationId", person.getOrganisation());
+        json.put("organisationId", person.getOrganisationId());
 
-        ArrayList<String> phoneArray = new ArrayList<>();
-        phoneArray.add(CommonUtils.strNotNull(person.getHomePhone_n()));
-        phoneArray.add(CommonUtils.strNotNull(person.getCellPhone_n()));
-        phoneArray.add(CommonUtils.strNotNull(person.getMainPhone_n()));
-        phoneArray.add(CommonUtils.strNotNull(person.getOtherPhone_n()));
-        phoneArray.add(CommonUtils.strNotNull(person.getOfficePhone_n()));
-
+        List<String> phoneArray = person.getPhoneBlock().getAsList();
         String phones = String.join(" ", phoneArray);
         json.put("phones", phones);
 
-        ArrayList<String> mailArray = new ArrayList<>();
-        phoneArray.add(CommonUtils.strNotNull(person.getWorkEmail_n()));
-        phoneArray.add(CommonUtils.strNotNull(person.getMainEmail_n()));
-
-        String mails = String.join(" ", phoneArray);
+        List<String> mailArray = person.getEmailBlock().getAsList();
+        String mails = String.join(" ", mailArray);
         json.put("emails", mails);
 
+        json.put(E_DATAFIELD, gson.toJson(person));
 
-        IndexResponse response = this.elasticClient.prepareIndex("rplus", "person", Long.toString(person.getId())).setSource(json).get();
-    }
-
-    public Person delete (long id) {
-        return null;
+        IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(person.getId())).setSource(json).get();
     }
 }

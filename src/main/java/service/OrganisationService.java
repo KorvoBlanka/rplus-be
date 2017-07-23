@@ -1,59 +1,81 @@
 package service;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import entity.Account;
+import entity.User;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-import hibernate.entity.Organisation;
+import entity.Organisation;
+import utils.CommonUtils;
 
 
 public class OrganisationService {
 
+    private final String E_INDEX = "rplus";
+    private final String E_TYPE = "organisation";
+    private final String E_DATAFIELD = "data";
+
     Logger logger = LoggerFactory.getLogger(OrganisationService.class);
-    EntityManagerFactory emf;
+    private final Client elasticClient;
+    Gson gson = new Gson();
 
+    public OrganisationService (Client elasticClient) {
 
-    public OrganisationService (EntityManagerFactory emf) {
-
-        this.emf = emf;
+        this.elasticClient = elasticClient;
     }
 
     public List<String> check (Organisation org) {
         List<String> errors = new LinkedList<>();
 
-        if (org.getName() == null || org.getName().length() < 2) errors.add("name is null or too short");
+        if (org.getName() == null || org.getName().length() < 2) errors.add("name is empty or too short");
 
         return errors;
     }
 
-    public List<Organisation> list (int page, int perPage, String searchQuery) {
+    public List<Organisation> list (long accountId, int page, int perPage, String searchQuery) {
 
         this.logger.info("list");
 
-        List<Organisation> orgList;
+        List<Organisation> orgList = new ArrayList<>();
 
-        EntityManager em = emf.createEntityManager();
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setFrom(page * perPage).setSize(perPage);
 
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Organisation> cq = cb.createQuery(Organisation.class);
-        Root<Organisation> organiasationRoot = cq.from(Organisation.class);
-        cq.select(organiasationRoot);
+        BoolQueryBuilder q = QueryBuilders.boolQuery();
 
+        // set query
+        q.must(QueryBuilders.matchQuery("accountId", accountId));
 
-        orgList = em.createQuery(cq).getResultList();
+        if (searchQuery != null && searchQuery.length() > 0) {
 
+            q.should(QueryBuilders.matchQuery("name", searchQuery));
+            //
+        }
 
-        em.close();
+        rb.setQuery(q);
+
+        // execute
+
+        SearchResponse response = rb.execute().actionGet();
+
+        for (SearchHit sh: response.getHits()) {
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            orgList.add(gson.fromJson(dataJson, Organisation.class));
+        }
 
         return orgList;
     }
@@ -62,35 +84,46 @@ public class OrganisationService {
 
         this.logger.info("get");
 
-        EntityManager em = emf.createEntityManager();
+        Organisation result = null;
 
-        Organisation result = em.find(Organisation.class, id);
+        GetResponse response = this.elasticClient.prepareGet(E_INDEX, E_TYPE, Long.toString(id)).get();
 
-        em.close();
+        String dataJson = response.getSourceAsMap().get(E_DATAFIELD).toString();
+        result = gson.fromJson(dataJson, Organisation.class);
 
         return result;
     }
 
     public Organisation save (Organisation organisation) throws Exception {
 
-        this.logger.info("create");
+        this.logger.info("save");
 
+        indexAccount(organisation);
 
-        EntityManager em = emf.createEntityManager();
-
-        Organisation result;
-
-        em.getTransaction().begin();
-        result = em.merge(organisation);
-        em.getTransaction().commit();
-
-
-        em.close();
-
-        return result;
+        return organisation;
     }
 
     public Organisation delete (long id) {
         return null;
+    }
+
+
+    public void indexAccount(Organisation organisation) {
+
+        Map<String, Object> json = new HashMap<String, Object>();
+
+        if (organisation.getId() == null) {
+            organisation.setId(CommonUtils.getSystemTimestamp());
+        }
+
+        json.put("id", organisation.getId());
+        json.put("accountId", organisation.getAccountId());
+
+        json.put("name", organisation.getName());
+        //
+
+        json.put(E_DATAFIELD, gson.toJson(organisation));
+
+        IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(organisation.getId())).setSource(json).get();
     }
 }

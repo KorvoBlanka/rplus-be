@@ -4,7 +4,6 @@
 
 import configuration.AppConfig;
 
-import hibernate.entity.Organisation;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -14,10 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import resource.*;
 import service.*;
-import spark.Spark;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -45,15 +41,14 @@ public class App {
         //Spark.externalStaticFileLocation(AppConfig.STATIC_FILE_LOCATION);
 
         ec = getElasticClient();
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("rplus-be-dev.jpa.hibernate");
 
         // services
-        App.accountService = new AccountService(emf);
-        App.userService = new UserService(emf);
-        App.orgService = new OrganisationService(emf);
-        App.personService = new PersonService(emf, ec);
-        App.offerService = new OfferService(emf, ec);
-        App.requestService = new RequestService(emf, ec);
+        App.accountService = new AccountService(ec);
+        App.userService = new UserService(ec);
+        App.orgService = new OrganisationService(ec);
+        App.personService = new PersonService(ec);
+        App.offerService = new OfferService(ec);
+        App.requestService = new RequestService(ec);
         App.geoService = new GeoService();
         App.uploadService = new UploadService();
 
@@ -69,11 +64,6 @@ public class App {
         new GeoResource(App.geoService);
         new UploadResource(App.uploadService);
 
-        //new PhotoResource(App.photoService);
-        //new PersonResource(App.person_service);
-        //new RealtyResource(App.realty_service);
-        //new RequestResource(App.request_service);
-
         exception(Exception.class, (exception, request, response) -> {
             response.status(500);
             response.body("Ex:" + exception.getMessage());
@@ -88,5 +78,4 @@ public class App {
 
         return client;
     }
-
 }

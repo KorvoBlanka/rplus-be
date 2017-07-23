@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import configuration.AppConfig;
 import service.PersonService;
-import hibernate.entity.Person;
+import entity.Person;
 
 
 public class PersonResource {
@@ -45,8 +45,8 @@ public class PersonResource {
             Long accountId = 0L;
             int page = 0;
             int perPage = 32;
-            Integer userId = null;
-            Integer organisationId = null;
+            Long userId = null;
+            Long organisationId = null;
             String searchQuery = null;
 
             if (request.queryParams("accountId") != null) {
@@ -65,12 +65,12 @@ public class PersonResource {
 
             String userIdStr = request.queryParams("userId");
             if (userIdStr != null && StringUtils.isNumeric(userIdStr)) {
-                userId = Integer.parseInt(userIdStr);
+                userId = Long.parseLong(userIdStr);
             }
 
             String orgStr = request.queryParams("organisationId");
             if (orgStr != null && StringUtils.isNumeric(orgStr)) {
-                organisationId = Integer.parseInt(orgStr);
+                organisationId = Long.parseLong(orgStr);
             }
 
             if (request.queryParams("searchQuery") != null) {

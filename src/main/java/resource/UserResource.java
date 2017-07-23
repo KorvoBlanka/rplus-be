@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import configuration.AppConfig;
 import service.UserService;
-import hibernate.entity.User;
+import entity.User;
 
 
 public class UserResource {
@@ -41,29 +41,42 @@ public class UserResource {
 
             Map<String, Object> result = new HashMap<>();
 
-            Integer accountId = null;
-            User.Role role = null;
-            Integer superiorId = null;
+            int page = 0;
+            int perPage = 32;
+            Long accountId = null;
+            String role = null;
+            Long superiorId = null;
+
+
+            String pageStr = request.queryParams("page");
+            if (pageStr != null && StringUtils.isNumeric(pageStr)) {
+                page = Integer.parseInt(pageStr);
+            }
+
+            String perPageStr = request.queryParams("perPage");
+            if (perPageStr != null && StringUtils.isNumeric(perPageStr)) {
+                perPage = Integer.parseInt(perPageStr);
+            }
 
             String accountIdStr = request.queryParams("accountId");
             if (accountIdStr != null && StringUtils.isNumeric(accountIdStr)) {
-                accountId = Integer.parseInt(accountIdStr);
+                accountId = Long.parseLong(accountIdStr);
             }
 
             String roleStr = request.queryParams("role");
-            if (roleStr != null && User.Role.contains(roleStr)) {
-                role = User.Role.valueOf(roleStr);
+            if (roleStr != null) {
+                role = roleStr;
             }
 
             String superiorIdStr = request.queryParams("superiorId");
             if (superiorIdStr != null && StringUtils.isNumeric(superiorIdStr)) {
-                superiorId = Integer.parseInt(superiorIdStr);
+                superiorId = Long.parseLong(superiorIdStr);
             }
 
             String searchQuery = request.queryParams("searchQuery");
 
 
-            List<User> userList = userService.list(accountId, role, superiorId, searchQuery);
+            List<User> userList = userService.list(accountId, page, perPage, role, superiorId, searchQuery);
 
             result.put("response", "ok");
             result.put("result", userList);

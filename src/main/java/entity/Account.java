@@ -1,4 +1,4 @@
-package hibernate.entity;
+package entity;
 
 /**
  * Created by Aleksandr on 20.01.17.
@@ -7,14 +7,9 @@ package hibernate.entity;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 
-
-@Entity
 public class Account {
 
-    @Id
-    @GeneratedValue
     @Getter
     @Setter
     private Long id;

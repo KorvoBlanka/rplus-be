@@ -12,14 +12,13 @@ import static spark.Spark.post;
 import static spark.Spark.put;
 
 import com.google.gson.Gson;
-import hibernate.entity.User;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import configuration.AppConfig;
 import service.OrganisationService;
-import hibernate.entity.Organisation;
+import entity.Organisation;
 
 
 public class OrganisationResource {
@@ -45,6 +44,7 @@ public class OrganisationResource {
 
             int page = 0;
             int perPage = 32;
+            Long accountId = null;
             String searchQuery = null;
 
             String pageStr = request.queryParams("page");
@@ -57,11 +57,16 @@ public class OrganisationResource {
                 perPage = Integer.parseInt(perPageStr);
             }
 
+            String accountIdStr = request.queryParams("accountId");
+            if (accountIdStr != null && StringUtils.isNumeric(accountIdStr)) {
+                accountId = Long.parseLong(accountIdStr);
+            }
+
             if (request.queryParams("searchQuery") != null) {
                 searchQuery = request.queryParams("searchQuery");
             }
 
-            List<Organisation> orgList = orgService.list(page, perPage, searchQuery);
+            List<Organisation> orgList = orgService.list(accountId, page, perPage, searchQuery);
 
             result.put("response", "ok");
             result.put("result", orgList);

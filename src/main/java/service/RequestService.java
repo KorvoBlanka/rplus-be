@@ -3,8 +3,7 @@ package service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import hibernate.entity.Offer;
-import hibernate.entity.Request;
+import entity.Request;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -13,7 +12,6 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -25,45 +23,36 @@ import utils.FilterObject;
 import utils.ParseResult;
 import utils.Query;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.util.*;
 
 
 public class RequestService {
 
+    private final String E_INDEX = "rplus";
+    private final String E_TYPE = "request";
+    private final String E_DATAFIELD = "data";
+
     Logger logger = LoggerFactory.getLogger(RequestService.class);
-
-    EntityManagerFactory emf;
     private final Client elasticClient;
-
-    private final String E_INDEX = "rplus-index";
-    private final String E_TYPE = "requests";
-
     Gson gson = new GsonBuilder().create();
+    //Gson gson = new Gson();
 
 
-    public RequestService (EntityManagerFactory emf, Client elasticClient) {
+    public RequestService (Client elasticClient) {
 
-        this.emf = emf;
         this.elasticClient = elasticClient;
     }
 
 
-    public List<Request> list (Long accountId, int page, int perPage, Map<String, String> filter, String searchQuery) {
+    public List<Request> list (long accountId, int page, int perPage, Map<String, String> filter, String searchQuery) {
 
         logger.info("list");
 
         List<Request> requestList = new ArrayList<>();
 
-        EntityManager em = emf.createEntityManager();
 
-        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
-                .setTypes("request")
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setFrom(page * perPage).setSize(perPage);
 
@@ -73,28 +62,29 @@ public class RequestService {
 
         q.must(QueryBuilders.termQuery("accountId", accountId));
 
-        filter.forEach((k,v) -> {
-            if (k.equals("stageCode")) {
-                if (v != null && !v.equals("all")) {
-                    q.must(QueryBuilders.termQuery(k, v));
-                } else {
-                    q.mustNot(QueryBuilders.termQuery(k, "archive"));
-                }
-            } else {
-                if (v != null && !v.equals("all")) {
-                    if (k.equals("changeDate")) {
-                        long date = Long.parseLong(v);
-
-                        // 86400 sec in 1 day
-                        long ts = CommonUtils.getUnixTimestamp() - date * 86400;
-                        q.must(QueryBuilders.rangeQuery(k).gte(ts));
-                    } else {
+        if (filter != null) {
+            filter.forEach((k, v) -> {
+                if (k.equals("stageCode")) {
+                    if (v != null && !v.equals("all")) {
                         q.must(QueryBuilders.termQuery(k, v));
+                    } else {
+                        q.mustNot(QueryBuilders.termQuery(k, "archive"));
+                    }
+                } else {
+                    if (v != null && !v.equals("all")) {
+                        if (k.equals("changeDate")) {
+                            long date = Long.parseLong(v);
+
+                            // 86400 sec in 1 day
+                            long ts = CommonUtils.getUnixTimestamp() - date * 86400;
+                            q.must(QueryBuilders.rangeQuery(k).gte(ts));
+                        } else {
+                            q.must(QueryBuilders.termQuery(k, v));
+                        }
                     }
                 }
-            }
-        });
-
+            });
+        }
 
         if (searchQuery != null && searchQuery.length() > 2) {
             //q.must(QueryBuilders.matchPhraseQuery("allTags", searchQuery).slop(50));
@@ -109,10 +99,8 @@ public class RequestService {
 
 
         for (SearchHit sh: response.getHits()) {
-            Request request = em.find(hibernate.entity.Request.class, Long.parseLong(sh.getId()));
-            if (request != null) {
-                requestList.add(request);
-            }
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            requestList.add(gson.fromJson(dataJson, Request.class));
         }
 
         return requestList;
@@ -120,11 +108,7 @@ public class RequestService {
 
     public float checkOffer (Long accountId, Long offerId, String offerTypeCode, String searchQuery, List<GeoPoint> geoSearchPolygon) {
 
-        this.logger.info("list");
-
-        List<Offer> offerList = new ArrayList<>();
-
-        EntityManager em = emf.createEntityManager();
+        this.logger.info("check offer");
 
         Map<String, String> queryParts = Query.process(searchQuery);
         String request = queryParts.get("req");
@@ -133,7 +117,7 @@ public class RequestService {
         ParseResult pr = Query.parse(request);
         List<FilterObject> rangeFilters = pr.filterList;
 
-        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
                 .setTypes("offer")
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setFrom(0).setSize(10);
@@ -189,36 +173,19 @@ public class RequestService {
         return 0.0f;
     }
 
-    public List<Request> listForOffer (Long accountId, int page, int perPage, Long offerId) {
+    public List<Request> listForOffer (Long accountId, int page, int perPage, long offerId) {
 
         logger.info("list for offer");
 
         List<Request> requestList = new ArrayList<>();
 
-        EntityManager em = emf.createEntityManager();
-
-        // получить список запросов
-
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Request> cq = cb.createQuery(Request.class);
-        Root<Request> userRoot = cq.from(Request.class);
-
-        List<Predicate> predicates = new ArrayList<Predicate>();
-
-        if (accountId != null) {
-            predicates.add(cb.equal(userRoot.get("accountId"), accountId));
-        }
-
-        cq.select(userRoot)
-                .where(predicates.toArray(new Predicate[]{}));
-
-        List<Request> rqList = em.createQuery(cq).getResultList();
+        List<Request> rqList = list(accountId, 0, 100, null, null);
 
         // перебрать и проверить подходит ли объект
         HashMap<Float, Request> tMap = new HashMap<Float, Request>();
         rqList.forEach(rq -> {
             ArrayList<GeoPoint> gpa = new ArrayList<>();
-            for (hibernate.entity.GeoPoint p : rq.getSearchArea()) {
+            for (auxclass.GeoPoint p : rq.getSearchArea()) {
                 gpa.add(new GeoPoint(p.lat, p.lon));
             }
             if (rq.getOfferTypeCode() != null) {
@@ -246,45 +213,51 @@ public class RequestService {
 
         this.logger.info("get");
 
-        Request res = null;
+        Request result = null;
 
-        return res;
+        GetResponse response = this.elasticClient.prepareGet(E_INDEX, E_TYPE, Long.toString(id)).get();
+        String dataJson = response.getSourceAsMap().get(E_DATAFIELD).toString();
+        result = gson.fromJson(dataJson, Request.class);
+
+        return result;
     }
 
     public Request save (Request request) throws Exception {
 
         this.logger.info("save");
 
-        EntityManager em = emf.createEntityManager();
+        indexRequest(request);
 
-        Request result;
-
-        em.getTransaction().begin();
-        result = em.merge(request);
-        em.getTransaction().commit();
-
-        indexRequest(result);
-
-        return result;
-    }
-
-    public void indexRequest(Request request) {
-
-        Map<String, Object> json = new HashMap<>();
-        json.put("id", request.getId());
-        json.put("request", request.request);
-
-        json.put("stageCode", request.getStageCode());
-
-        json.put("accountId", request.getAccountId());
-        json.put("offerTypeCode", request.getOfferTypeCode());
-        json.put("agentId", request.getAgentId());
-        json.put("personId", request.getPersonId());
-
-        IndexResponse response = this.elasticClient.prepareIndex("rplus", "request", Long.toString(request.getId())).setSource(json).get();
+        return request;
     }
 
     public Request delete (String id) {
         return null;
+    }
+
+
+    public void indexRequest(Request request) {
+
+        Map<String, Object> json = new HashMap<>();
+
+        if (request.getId() == null) {
+            request.setId(CommonUtils.getSystemTimestamp());
+        }
+
+
+        json.put("id", request.getId());
+        json.put("accountId", request.getAccountId());
+        json.put("request", request.request);
+
+        json.put("agentId", request.getAgentId());
+        json.put("personId", request.getPersonId());
+
+        json.put("stageCode", request.getStageCode());
+        json.put("offerTypeCode", request.getOfferTypeCode());
+
+        json.put(E_DATAFIELD, gson.toJson(request));
+
+
+        IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(request.getId())).setSource(json).get();
     }
 }

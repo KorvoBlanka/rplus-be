@@ -1,10 +1,8 @@
-package hibernate.entity;
+package entity;
 
+import auxclass.GeoPoint;
 import lombok.Getter;
 import lombok.Setter;
-
-
-import javax.persistence.*;
 
 
 import static utils.CommonUtils.getUnixTimestamp;
@@ -13,21 +11,22 @@ import static utils.CommonUtils.getUnixTimestamp;
  * Created by Aleksandr on 09.11.16.
  */
 
-@Entity
+
 public class Request {
 
-    @Id
-    @GeneratedValue
     @Getter
     @Setter
     public Long id;
+    @Getter
+    @Setter
+    private Long accountId;
 
     @Getter
     @Setter
-    public String agentId;
+    public Long agentId;
     @Getter
     @Setter
-    public String personId;
+    public Long personId;
 
 
     @Getter
@@ -56,21 +55,14 @@ public class Request {
 
     @Getter
     @Setter
-    @Column(columnDefinition="BLOB")
     public GeoPoint[] searchArea;
 
     @Getter
     @Setter
-    private Long accountId;
-
-    @Getter
-    @Setter
-    private String info_n;
+    private String info;
 
 
-    @PreUpdate
-    @PrePersist
-    void preInsert() {
+    void preIndex() {
 
         if (getId() == null) {
             setAddDate(getUnixTimestamp());

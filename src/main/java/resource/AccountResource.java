@@ -6,13 +6,11 @@ import static spark.Spark.put;
 
 import com.google.gson.Gson;
 import configuration.AppConfig;
-import hibernate.entity.Account;
+import entity.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.AccountService;
-import utils.CommonUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +35,7 @@ public class AccountResource {
         get(AppConfig.API_CONTEXT + "/account/list", "application/json", (request, response) -> {
 
             Map<String, Object> result = new HashMap<>();
-            List<Account> accountList = accountService.list("");
+            List<Account> accountList = accountService.list(0, 100,"");
 
             result.put("response", "ok");
             result.put("result", accountList);

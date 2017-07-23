@@ -1,20 +1,19 @@
 package service;
 
+import auxclass.ImportOffer;
+import entity.*;
 import com.google.gson.*;
 
 import configuration.AppConfig;
-import hibernate.entity.*;
 
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.geo.GeoDistance;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.common.lucene.search.MoreLikeThisQuery;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -22,14 +21,8 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import utils.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -46,13 +39,14 @@ public class OfferService {
         List<Offer> list;
     }
 
-    Logger logger = LoggerFactory.getLogger(OfferService.class);
+    private final String E_INDEX = "rplus";
+    private final String E_TYPE = "offer";
+    private final String E_DATAFIELD = "data";
 
-    EntityManagerFactory emf;
+
+    Logger logger = LoggerFactory.getLogger(OfferService.class);
     private final Client elasticClient;
 
-    private final String E_INDEX = "rplus-index-dev";
-    private final String E_TYPE = "offers";
 
     Gson gson = new GsonBuilder().create();
 
@@ -65,9 +59,8 @@ public class OfferService {
     HashMap<Integer, String> dRoomScheme = new HashMap<>();
 
 
-    public OfferService (EntityManagerFactory emf, Client elasticClient) {
+    public OfferService (Client elasticClient) {
 
-        this.emf = emf;
         this.elasticClient = elasticClient;
 
 
@@ -149,87 +142,12 @@ public class OfferService {
         dRoomScheme.put(6, "Студия");
     }
 
-    public ListResult listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon)
-    throws UnsupportedEncodingException
-    {
-        List<Offer> offerList = new ArrayList<>();
-        Long hitsCount = 0L;
-        ListResult r = new ListResult();
-        r.hitsCount = 0;
-
-        this.logger.info("list import");
-
-        String url = AppConfig.IMPORT_URL + "/api/offer/search?"
-        + "query=" + URLEncoder.encode(searchQuery, "UTF-8")
-        + "&offer_type=" + filter.get("offerTypeCode")
-        + "&page=" + page
-        + "&per_page=" + perPage
-        + "&sort=" + gson.toJson(sort)
-        + "&search_area=" + gson.toJson(geoSearchPolygon);
-
-        this.logger.info(url);
-
-        try {
-
-            URL iurl = new URL(url);
-
-            HttpURLConnection uc = (HttpURLConnection) iurl.openConnection();
-            uc.connect();
-
-            int status = uc.getResponseCode();
-
-            switch (status) {
-                case 200:
-                case 201:
-                    String jsonStr;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(uc.getInputStream()));
-                    StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line+"\n");
-                    }
-                    br.close();
-                    jsonStr = sb.toString();
-
-                    JsonObject jsonObject = new JsonParser().parse(jsonStr).getAsJsonObject();
-
-                    JsonArray t = jsonObject.get("list").getAsJsonArray();
-                    hitsCount = jsonObject.get("hitsCount").getAsLong();
-
-                    t.forEach(je -> {
-                        String os = je.getAsString();
-
-                        try {
-                            ImportOffer io = gson.fromJson(os, ImportOffer.class);
-
-                            Offer offer = Offer.fromImportOffer(io);
-                            offerList.add(offer);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                            logger.error(ex.getMessage());
-                        }
-                    });
-
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            logger.error(ex.getMessage());
-            return null;
-        }
-
-        r.hitsCount = hitsCount;
-        r.list = offerList;
-
-        return r;
-    }
 
     public ListResult list (Long accountId, int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon) {
 
         this.logger.info("list");
 
         List<Offer> offerList = new ArrayList<>();
-
-        EntityManager em = emf.createEntityManager();
 
         Map<String, String> queryParts = Query.process(searchQuery);
         String request = queryParts.get("req");
@@ -240,8 +158,8 @@ public class OfferService {
         List<FilterObject> rangeFilters = pr.filterList;
 
 
-        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
-                .setTypes("offer")
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setFrom(page * perPage).setSize(perPage);
 
@@ -358,10 +276,8 @@ public class OfferService {
         r.hitsCount = response.getHits().getTotalHits();
 
         for (SearchHit sh: response.getHits()) {
-            Offer offer = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
-            if (offer != null) {
-                offerList.add(offer);
-            }
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            offerList.add(gson.fromJson(dataJson, Offer.class));
         }
 
         r.list = offerList;
@@ -369,18 +285,92 @@ public class OfferService {
         return r;
     }
 
+
+    public ListResult listImport (int page, int perPage, Map<String, String> filter, Map<String, String> sort, String searchQuery, List<GeoPoint> geoSearchPolygon)
+    throws UnsupportedEncodingException
+    {
+        List<Offer> offerList = new ArrayList<>();
+        Long hitsCount = 0L;
+        ListResult r = new ListResult();
+        r.hitsCount = 0;
+
+        this.logger.info("list import");
+
+        String url = AppConfig.IMPORT_URL + "/api/offer/search?"
+        + "query=" + URLEncoder.encode(searchQuery, "UTF-8")
+        + "&offer_type=" + filter.get("offerTypeCode")
+        + "&page=" + page
+        + "&per_page=" + perPage
+        + "&sort=" + gson.toJson(sort)
+        + "&search_area=" + gson.toJson(geoSearchPolygon);
+
+        this.logger.info(url);
+
+        try {
+
+            URL iurl = new URL(url);
+
+            HttpURLConnection uc = (HttpURLConnection) iurl.openConnection();
+            uc.connect();
+
+            int status = uc.getResponseCode();
+
+            switch (status) {
+                case 200:
+                case 201:
+                    String jsonStr;
+                    BufferedReader br = new BufferedReader(new InputStreamReader(uc.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line+"\n");
+                    }
+                    br.close();
+                    jsonStr = sb.toString();
+
+                    JsonObject jsonObject = new JsonParser().parse(jsonStr).getAsJsonObject();
+
+                    JsonArray t = jsonObject.get("list").getAsJsonArray();
+                    hitsCount = jsonObject.get("hitsCount").getAsLong();
+
+                    t.forEach(je -> {
+                        String os = je.getAsString();
+
+                        try {
+                            ImportOffer io = gson.fromJson(os, ImportOffer.class);
+
+                            Offer offer = Offer.fromImportOffer(io);
+                            offerList.add(offer);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            logger.error(ex.getMessage());
+                        }
+                    });
+
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            logger.error(ex.getMessage());
+            return null;
+        }
+
+        r.hitsCount = hitsCount;
+        r.list = offerList;
+
+        return r;
+    }
+
+
     public ListResult listSimilar (Long accountId, int page, int perPage, long id) {
 
         this.logger.info("list similar");
 
         List<Offer> offerList = new ArrayList<>();
 
-        EntityManager em = emf.createEntityManager();
+        Offer offer = get(id);
 
-        Offer offer = em.find(hibernate.entity.Offer.class, id);
-
-        SearchRequestBuilder rb = elasticClient.prepareSearch("rplus")
-                .setTypes("offer")
+        SearchRequestBuilder rb = elasticClient.prepareSearch(E_INDEX)
+                .setTypes(E_TYPE)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setFrom(page * perPage).setSize(perPage);
 
@@ -420,10 +410,8 @@ public class OfferService {
 
 
         for (SearchHit sh: response.getHits()) {
-            Offer o = em.find(hibernate.entity.Offer.class, Long.parseLong(sh.getId()));
-            if (o != null) {
-                offerList.add(o);
-            }
+            String dataJson = sh.getSourceAsMap().get(E_DATAFIELD).toString();
+            offerList.add(gson.fromJson(dataJson, Offer.class));
         }
 
         r.list = offerList;
@@ -431,65 +419,65 @@ public class OfferService {
         return r;
     }
 
+
     public Offer get (long id) {
 
         this.logger.info("get");
 
-        EntityManager em = emf.createEntityManager();
+        Offer result = null;
 
-        Offer offer = em.find(hibernate.entity.Offer.class, id);
+        GetResponse response = this.elasticClient.prepareGet(E_INDEX, E_TYPE, Long.toString(id)).get();
 
-        em.close();
+        String dataJson = response.getSourceAsMap().get(E_DATAFIELD).toString();
+        result = gson.fromJson(dataJson, Offer.class);
 
-        return offer;
+        return result;
     }
+
 
     public Offer save (Offer offer) throws Exception {
 
         this.logger.info("save");
 
-        EntityManager em = emf.createEntityManager();
-
         Offer result;
 
-        String fullAddress = CommonUtils.strNotNull(offer.getLocality()) + " " + CommonUtils.strNotNull(offer.getAddress()) + " " + CommonUtils.strNotNull(offer.getHouseNum());
 
-        Double[] latLon = GeoUtils.getCoordsByAddr(fullAddress);
-        if (latLon != null) {
-            offer.setLocationLat(latLon[0]);
-            offer.setLocationLon(latLon[1]);
+        String fullAddress = offer.getFullAddress().getAsString();
 
-            List<String> districts = GeoUtils.getLocationDistrict(latLon[0], latLon[1]);
-            if (!districts.isEmpty()) {
-                offer.setDistrict(districts.get(0));
+        if (fullAddress.length() > 0) {
+            Double[] latLon = GeoUtils.getCoordsByAddr(fullAddress);
+            if (latLon != null) {
+                offer.setLocationLat(latLon[0]);
+                offer.setLocationLon(latLon[1]);
+
+                List<String> districts = GeoUtils.getLocationDistrict(latLon[0], latLon[1]);
+                if (!districts.isEmpty()) {
+                    offer.setDistrict(districts.get(0));
+                }
             }
         }
 
-        Person p = offer.getPerson();
-        if (offer.getPersonId() == null && p != null) {
-            em.getTransaction().begin();
-            Person r = em.merge(p);
-            em.getTransaction().commit();
-            offer.setPersonId(r.getId());
-            offer.setPerson(null);
-        }
+        indexOffer(offer);
 
-        em.getTransaction().begin();
-        result = em.merge(offer);
-        em.getTransaction().commit();
-
-        indexOffer(result);
-
-        return result;
+        return offer;
     }
+
+
+    public Offer delete (int id) {
+        return null;
+    }
+
+
 
     public void indexOffer(Offer offer) {
 
+        if (offer.getId() == null) {
+            offer.setId(CommonUtils.getSystemTimestamp());
+        }
+
         String title = dTypeCode.get(offer.getTypeCode());
 
-        String address = CommonUtils.strNotNull(offer.getLocality()) +
-            " " + CommonUtils.strNotNull(offer.getAddress()) +
-            " " + CommonUtils.strNotNull(offer.getHouseNum());
+        String address = offer.getFullAddress().getAsString();
 
         if (offer.getDistrict() != null) {
             address += " " + offer.getDistrict();
@@ -507,6 +495,7 @@ public class OfferService {
 
         Map<String, Object> json = new HashMap<String, Object>();
         json.put("id", offer.getId());
+        json.put("accountId", offer.getAccountId());
         json.put("title", title);
         json.put("address_ext", address);
         json.put("spec", spec);
@@ -520,7 +509,6 @@ public class OfferService {
         }
 
         // filters
-        json.put("accountId", offer.getAccountId());
         json.put("offerTypeCode", offer.getOfferTypeCode());
         json.put("typeCode", offer.getTypeCode());
         json.put("stageCode", offer.getStageCode());
@@ -535,8 +523,10 @@ public class OfferService {
         json.put("squareTotal", offer.getSquareTotal());
 
         // sort
-        json.put("locality", offer.getLocality());
-        json.put("address", offer.getAddress());
+        if (offer.getFullAddress() != null) {
+            json.put("locality", offer.getFullAddress().getCity());
+            json.put("address", offer.getFullAddress().getStreet());
+        }
         json.put("district", offer.getDistrict());
         json.put("poi", offer.getDistrict());
 
@@ -560,22 +550,23 @@ public class OfferService {
             json.put("contactName", offer.getPerson().getName());
             if (offer.getPerson().getOrganisationId() != null) {
 
+                /*
+                PersonService.get(personId)
+                OrganisationService.get(organisationId)
                 EntityManager em = emf.createEntityManager();
-                Organisation org = em.find(hibernate.entity.Organisation.class, offer.getPerson().getOrganisationId());
+                Organisation org = em.find(Organisation.class, offer.getPerson().getOrganisationId());
                 json.put("orgName", org.getName());
                 json.put("orgType", org.getTypeCode_n());
                 em.close();
-
+                */
             } else {
                 json.put("orgName", offer.getPerson().getName());
                 json.put("orgType", "private");
             }
         }
 
-        IndexResponse response = this.elasticClient.prepareIndex("rplus", "offer", Long.toString(offer.getId())).setSource(json).get();
-    }
+        json.put(E_DATAFIELD, gson.toJson(offer));
 
-    public Offer delete (int id) {
-        return null;
+        IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(offer.getId())).setSource(json).get();
     }
 }

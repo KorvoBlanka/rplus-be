@@ -6,8 +6,8 @@ package resource;
 import configuration.AppConfig;
 import com.google.gson.Gson;
 
-import hibernate.entity.Request;
-import hibernate.entity.User;
+import entity.Request;
+import entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.RequestService;

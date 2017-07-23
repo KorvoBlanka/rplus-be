@@ -2,10 +2,8 @@
  * Created by owl on 3/26/16.
  */
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import static spark.Spark.before;
 import static spark.Spark.halt;
@@ -14,11 +12,11 @@ import static spark.Spark.post;
 
 import com.google.gson.Gson;
 import configuration.AppConfig;
-import hibernate.entity.Account;
+import entity.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hibernate.entity.User;
+import entity.User;
 import utils.CommonUtils;
 
 
@@ -140,7 +138,5 @@ public class Authorisation {
             return result;
 
         }, gson::toJson);
-
     }
-
 }

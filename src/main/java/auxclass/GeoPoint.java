@@ -1,4 +1,4 @@
-package hibernate.entity;
+package auxclass;
 
 import java.io.Serializable;
 
