@@ -312,6 +312,11 @@ public class Offer {
     private String tag;
 
 
+    @Getter
+    @Setter
+    private Float ceilingHeight;
+
+
     void preIndex() {
 
         if (getId() == null) {

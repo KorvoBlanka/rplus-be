@@ -30,7 +30,6 @@ public class FullAddress {
     private String apartment;
 
     public String getAsString() {
-        String result = "";
 
         List<String> t = new ArrayList<>();
 
@@ -42,6 +41,6 @@ public class FullAddress {
         if (housing != null) t.add(housing);
         if (apartment != null) t.add(apartment);
 
-        return result;
+        return String.join(", ", t);
     }
 }

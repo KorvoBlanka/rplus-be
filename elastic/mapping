@@ -97,6 +97,9 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
                 },
                 "bathroom": {
                     "type": "keyword"
+                },
+                "addDate": {
+                    "type": "date"
                 }
             }
         }
