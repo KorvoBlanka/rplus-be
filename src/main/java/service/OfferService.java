@@ -259,7 +259,7 @@ public class OfferService {
 
 
         if (sort.size() == 0) {
-            rb.addSort(SortBuilders.fieldSort("addDate").order(SortOrder.DESC));
+            rb.addSort(SortBuilders.fieldSort("changeDate").order(SortOrder.DESC));
         } else {
             sort.forEach((k, v) -> {
                 if (v.equals("ASC")) {
@@ -473,7 +473,7 @@ public class OfferService {
 
             }
         }
-
+        offer.preIndex();
         indexOffer(offer);
 
         return offer;
