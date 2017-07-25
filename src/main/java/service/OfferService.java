@@ -460,11 +460,14 @@ public class OfferService {
             }
         }
 
-        Offer so = get(offer.getId());
-        if (offer.equals(so) == false) {
-            offer.setChangeDate(getUnixTimestamp());
-            if (!offer.getAgentId().equals(so.getAgentId())) {
-                offer.setAssignDate(getUnixTimestamp());
+        if (offer.getId() != null) {
+            Offer so = get(offer.getId());
+            if (offer.equals(so) == false) {
+                offer.setChangeDate(getUnixTimestamp());
+                if (!offer.getAgentId().equals(so.getAgentId())) {
+                    offer.setAssignDate(getUnixTimestamp());
+                }
+
             }
         }
 
