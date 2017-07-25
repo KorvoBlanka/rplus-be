@@ -1,3 +1,5 @@
+curl -XDELETE 'localhost:9200/rplus'
+
 curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
 {
     "settings": {
@@ -12,7 +14,7 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
                 },
                 "analyzer" : {
                     "synonym" : {
-                        "tokenizer" : "whitespace",
+                        "tokenizer" : "standard",
                         "filter" : ["synonym"]
                     }
                 }
@@ -26,6 +28,16 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
                     "type": "geo_point"
                 },
 
+                "tags": {
+                    "type": "text",
+                    "analyzer": "synonym",
+                    "fields": {
+                       "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                       }
+                    }
+                },
                 "locality": {
                     "type": "text",
                     "analyzer": "synonym",
@@ -39,8 +51,17 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
                 },
                 "address": {
                     "type": "text",
-                    "analyzer": "synonym",
                     "fielddata": true,
+                    "fields": {
+                       "keyword": {
+                          "type": "keyword",
+                          "ignore_above": 256
+                       }
+                    }
+                },
+                "address_ext": {
+                    "type": "text",
+                    "analyzer": "synonym",
                     "fields": {
                        "keyword": {
                           "type": "keyword",

@@ -31,6 +31,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 
+import static utils.CommonUtils.getUnixTimestamp;
+
 
 public class OfferService {
 
@@ -249,6 +251,7 @@ public class OfferService {
 
             q.should(QueryBuilders.matchQuery("title", pr.query).boost(8));
             q.should(QueryBuilders.matchQuery("address_ext", pr.query).boost(4));
+            q.should(QueryBuilders.matchQuery("district", pr.query).boost(2));
             q.should(QueryBuilders.matchQuery("spec", pr.query).boost(2));
             q.should(QueryBuilders.matchQuery("description", pr.query));
             q.should(QueryBuilders.matchQuery("orgName", pr.query));
@@ -457,6 +460,14 @@ public class OfferService {
             }
         }
 
+        Offer so = get(offer.getId());
+        if (offer.equals(so) == false) {
+            offer.setChangeDate(getUnixTimestamp());
+            if (!offer.getAgentId().equals(so.getAgentId())) {
+                offer.setAssignDate(getUnixTimestamp());
+            }
+        }
+
         indexOffer(offer);
 
         return offer;
@@ -478,10 +489,6 @@ public class OfferService {
         String title = dTypeCode.get(offer.getTypeCode());
 
         String address = offer.getFullAddress().getAsString();
-
-        if (offer.getDistrict() != null) {
-            address += " " + offer.getDistrict();
-        }
 
         ArrayList<String> specArray = new ArrayList<>();
         specArray.add(CommonUtils.strNotNull(dApScheme.get(offer.getApSchemeId())));
@@ -528,7 +535,7 @@ public class OfferService {
             json.put("address", offer.getFullAddress().getStreet());
         }
         json.put("district", offer.getDistrict());
-        json.put("poi", offer.getDistrict());
+        json.put("poi", offer.getPoi());
 
 
         json.put("houseType", dHouseType.get(offer.getHouseTypeId()));
@@ -565,6 +572,7 @@ public class OfferService {
             }
         }
 
+        offer.preIndex();
         json.put(E_DATAFIELD, gson.toJson(offer));
 
         IndexResponse response = this.elasticClient.prepareIndex(E_INDEX, E_TYPE, Long.toString(offer.getId())).setSource(json).get();

@@ -6,14 +6,19 @@ package entity;
 import auxclass.FullAddress;
 import auxclass.ImportOffer;
 import auxclass.Rating;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import static utils.CommonUtils.getUnixTimestamp;
 
 
+@EqualsAndHashCode(exclude={"agent", "person", "openDate"}, doNotUseGetters = true)
 public class Offer {
 
     @Getter
@@ -33,7 +38,7 @@ public class Offer {
 
     @Getter
     @Setter
-    FullAddress fullAddress;
+    private FullAddress fullAddress;
 
     @Getter
     @Setter
@@ -103,6 +108,9 @@ public class Offer {
     private Long changeDate;
     @Getter
     @Setter
+    private Long assignDate;
+    @Getter
+    @Setter
     private Long deleteDate;
     @Getter
     @Setter
@@ -122,7 +130,7 @@ public class Offer {
 
     @Getter
     @Setter
-    public Long agentId;
+    private Long agentId;
 
     @Getter
     @Setter
@@ -131,7 +139,7 @@ public class Offer {
 
     @Getter
     @Setter
-    public Long personId;
+    private Long personId;
 
     @Getter
     @Setter
@@ -139,15 +147,15 @@ public class Offer {
 
     @Getter
     @Setter
-    public Double locationLat;
+    private Double locationLat;
 
     @Getter
     @Setter
-    public Double locationLon;
+    private Double locationLon;
 
     @Getter
     @Setter
-    public String[] photoUrl;
+    private String[] photoUrl;
 
 
     // new stuff
@@ -317,12 +325,11 @@ public class Offer {
     private Float ceilingHeight;
 
 
-    void preIndex() {
+    public void preIndex() {
 
-        if (getId() == null) {
+        if (getAddDate() == null) {
             setAddDate(getUnixTimestamp());
         }
-        setChangeDate(getUnixTimestamp());
 
         /*
         if (this.getPersonId() != null) {
@@ -379,6 +386,7 @@ public class Offer {
         o.sourceUrl = io.source_url;
         o.sourceMediaText = io.source_media_text;
 
+        // get from import object
         o.addDate = 0L;
         o.lastSeenDate = 0L;
 
