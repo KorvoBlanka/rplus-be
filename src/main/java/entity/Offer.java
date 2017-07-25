@@ -329,6 +329,7 @@ public class Offer {
 
         if (getAddDate() == null) {
             setAddDate(getUnixTimestamp());
+            setChangeDate(getUnixTimestamp());
         }
 
         /*

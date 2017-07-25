@@ -462,6 +462,9 @@ public class OfferService {
 
         if (offer.getId() != null) {
             Offer so = get(offer.getId());
+
+            assert (so != null);
+
             if (offer.equals(so) == false) {
                 offer.setChangeDate(getUnixTimestamp());
                 if (!offer.getAgentId().equals(so.getAgentId())) {
