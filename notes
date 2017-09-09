@@ -1,3 +1,7 @@
 
 RequestService.listForOffer
-рас рас
+
+
+GET rplus/offer/1500943889454/_termvectors?fields=address_ext
+
+GET rplus/_analyze?analyzer=synonym&text=%D1%83%D0%BB%D0%B8%D1%86%D0%B0&pretty=true'

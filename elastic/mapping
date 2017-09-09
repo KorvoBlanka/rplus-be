@@ -15,7 +15,7 @@ curl -XPUT 'localhost:9200/rplus' -H 'Content-Type: application/json' -d'
                 "analyzer" : {
                     "synonym" : {
                         "tokenizer" : "standard",
-                        "filter" : ["synonym"]
+                        "filter" : ["lowercase", "synonym"]
                     }
                 }
             }

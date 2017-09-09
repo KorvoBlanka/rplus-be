@@ -47,7 +47,7 @@ public class App {
         App.userService = new UserService(ec);
         App.orgService = new OrganisationService(ec);
         App.personService = new PersonService(ec);
-        App.offerService = new OfferService(ec);
+        App.offerService = new OfferService(ec, userService, personService, orgService);
         App.requestService = new RequestService(ec);
         App.geoService = new GeoService();
         App.uploadService = new UploadService();

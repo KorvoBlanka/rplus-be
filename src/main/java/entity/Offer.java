@@ -30,10 +30,6 @@ public class Offer {
 
     @Getter
     @Setter
-    private String stateCode;
-
-    @Getter
-    @Setter
     private String stageCode;
 
     @Getter

@@ -21,6 +21,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.management.Agent;
 import utils.*;
 
 import java.io.BufferedReader;
@@ -48,7 +49,9 @@ public class OfferService {
 
     Logger logger = LoggerFactory.getLogger(OfferService.class);
     private final Client elasticClient;
-
+    private final UserService userService;
+    private final PersonService personService;
+    private final OrganisationService organisationService;
 
     Gson gson = new GsonBuilder().create();
 
@@ -61,10 +64,15 @@ public class OfferService {
     HashMap<Integer, String> dRoomScheme = new HashMap<>();
 
 
-    public OfferService (Client elasticClient) {
+    public OfferService (Client elasticClient,
+                         UserService userService,
+                         PersonService personService,
+                         OrganisationService organisationService) {
 
         this.elasticClient = elasticClient;
-
+        this.userService = userService;
+        this.personService = personService;
+        this.organisationService = organisationService;
 
         dTypeCode.put("room", "Комната");
         dTypeCode.put("apartment", "Квартира");
@@ -190,7 +198,7 @@ public class OfferService {
                 } else {
                     q.mustNot(QueryBuilders.termQuery(k, "archive"));
                 }
-            } else if (k.equals("orgType")) {
+            } else if (k.equals("contactType")) {
                 if (v != null && !v.equals("all")) {
                     if (StringUtils.isNumeric(v)) {
                         q.must(QueryBuilders.termQuery("agentId", v));
@@ -198,24 +206,6 @@ public class OfferService {
                         q.must(QueryBuilders.termQuery(k, v));
                     }
                 }
-                /*
-                switch (v) {
-                    case "realtor":
-                        // выбрать все организации
-                        // выбрать всех агентов
-                        // выбрать все предложения агентов
-                        break;
-                    case "private":
-                        break;
-                    case "partner":
-                        break;
-                    case "company":
-                        break;
-                    case "my":
-
-                        break;
-                }
-                */
             } else {
                 if (v != null && !v.equals("all")) {
                     if (k.equals("changeDate")) {
@@ -437,13 +427,42 @@ public class OfferService {
         return result;
     }
 
-
     public Offer save (Offer offer) throws Exception {
 
         this.logger.info("save");
 
         Offer result;
 
+        if (offer.getId() != null) {
+            Offer so = get(offer.getId());
+
+            assert (so != null);
+
+            if (offer.equals(so) == false) {
+                offer.setChangeDate(getUnixTimestamp());
+                if (offer.getAgentId() != null && !offer.getAgentId().equals(so.getAgentId())) {
+                    offer.setAssignDate(getUnixTimestamp());
+                }
+                if (offer.getFullAddress().equals(so.getFullAddress()) == false) {
+                    getCoordsDistrict(offer);
+                }
+            }
+        }
+        offer.preIndex();
+        indexOffer(offer);
+
+        return offer;
+    }
+
+
+    public Offer delete (int id) {
+        return null;
+    }
+
+
+    private void getCoordsDistrict(Offer offer) {
+
+        assert (offer.getFullAddress() != null);
 
         String fullAddress = offer.getFullAddress().getAsString();
 
@@ -459,34 +478,9 @@ public class OfferService {
                 }
             }
         }
-
-        if (offer.getId() != null) {
-            Offer so = get(offer.getId());
-
-            assert (so != null);
-
-            if (offer.equals(so) == false) {
-                offer.setChangeDate(getUnixTimestamp());
-                if (!offer.getAgentId().equals(so.getAgentId())) {
-                    offer.setAssignDate(getUnixTimestamp());
-                }
-
-            }
-        }
-        offer.preIndex();
-        indexOffer(offer);
-
-        return offer;
     }
 
-
-    public Offer delete (int id) {
-        return null;
-    }
-
-
-
-    public void indexOffer(Offer offer) {
+    private void indexOffer(Offer offer) {
 
         if (offer.getId() == null) {
             offer.setId(CommonUtils.getSystemTimestamp());
@@ -555,26 +549,46 @@ public class OfferService {
         json.put("changeDate", offer.getChangeDate());
         json.put("lastSeenDate", offer.getLastSeenDate());
 
-        // TODO: что если имя изменили?
-        if (offer.getAgent() != null) {
-            json.put("agentName", offer.getAgent().getName());
-        }
-        if (offer.getPerson() != null) {
-            json.put("contactName", offer.getPerson().getName());
-            if (offer.getPerson().getOrganisationId() != null) {
 
-                /*
-                PersonService.get(personId)
-                OrganisationService.get(organisationId)
-                EntityManager em = emf.createEntityManager();
-                Organisation org = em.find(Organisation.class, offer.getPerson().getOrganisationId());
-                json.put("orgName", org.getName());
-                json.put("orgType", org.getTypeCode_n());
-                em.close();
-                */
+        if (offer.getAgentId() == null) {
+            offer.setAgent(null);
+            json.put("agentName", null);
+        } else {
+
+            User agent = userService.get(offer.getAgentId());
+
+            assert (agent != null);
+
+            offer.setAgent(agent);
+            json.put("agentName", agent.getName());
+        }
+
+        if (offer.getPersonId() == null) {
+            offer.setPerson(null);
+            json.put("contactName", null);
+            json.put("contactType", null);
+            json.put("orgName", null);
+        } else {
+
+            Person person = personService.get(offer.getPersonId());
+
+            assert (person != null);
+
+            offer.setPerson(person);
+            json.put("contactName", person.getName());
+            json.put("contactType", person.getTypeCode());
+
+            if (person.getOrganisationId() == null) {
+                json.put("orgName", null);
             } else {
-                json.put("orgName", offer.getPerson().getName());
-                json.put("orgType", "private");
+
+                Organisation org = person.getOrganisation();
+
+                assert (org != null);
+
+                json.put("contactType", org.getTypeCode());
+                json.put("orgName", org.getName());
+
             }
         }
 
